@@ -5,6 +5,18 @@ import os
 import qrcode
 from io import BytesIO
 import base64
+
+app = Flask(__name__)
+
+app.config['SECRET_KEY'] = 'geheimer_schluessel'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+ADMIN_USERNAME = "chef"
+ADMIN_PASSWORD = "geheim123"
+
 PUBLIC_URL = os.environ.get('PUBLIC_URL', 'https://fahrradverleih.onrender.com')
 
 app = Flask(__name__)
