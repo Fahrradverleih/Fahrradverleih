@@ -20,6 +20,8 @@ ADMIN_PASSWORD = "geheim123"
 
 PUBLIC_URL = os.environ.get('PUBLIC_URL', 'https://fahrradverleih.onrender.com')
 
+# ==================== DATENBANK-MODELLE ====================
+
 class Fahrrad(db.Model):
     __tablename__ = 'fahrrad'
     id = db.Column(db.Integer, primary_key=True)
@@ -56,6 +58,17 @@ class Reservierung(db.Model):
     reserviert_am = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='Aktiv')
 
+# ====== NEU: Wartungs-Log für Mitarbeiter ======
+class Wartung(db.Model):
+    __tablename__ = 'wartung'
+    id = db.Column(db.Integer, primary_key=True)
+    fahrrad_id = db.Column(db.Integer, db.ForeignKey('fahrrad.id'))
+    mitarbeiter = db.Column(db.String(100), nullable=False)
+    problem = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), default='Offen')  # Offen, In Bearbeitung, Erledigt
+    erstellt_am = db.Column(db.DateTime, default=datetime.utcnow)
+    erledigt_am = db.Column(db.DateTime, nullable=True)
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -63,6 +76,8 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+
+# ==================== LOGIN ====================
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -104,6 +119,8 @@ def login():
 def logout():
     session.pop('logged_in', None)
     return redirect(url_for('kundenansicht'))
+
+# ==================== KUNDENANSICHT ====================
 
 HTML_KUNDEN = """
 <!DOCTYPE html>
@@ -309,7 +326,10 @@ def reservieren(id):
     db.session.add(kunde)
     db.session.flush()
     
-    reservierung = Reservierung(fahrrad_id=rad.id, kunde_id=kunde.id)
+    reservierung = Reservierung(
+        fahrrad_id=rad.id,
+        kunde_id=kunde.id
+    )
     db.session.add(reservierung)
     
     rad.status = 'Reserviert'
@@ -350,11 +370,14 @@ def widerruf():
     <br><a href="/">Zurück</a>
     """
 
+# ==================== MITARBEITER-BEREICH ====================
+
 @app.route('/mitarbeiter')
 @login_required
 def mitarbeiter():
     raeder = Fahrrad.query.all()
     kunden = Kunde.query.all()
+    wartungen = Wartung.query.all()
     return render_template_string("""
     <!DOCTYPE html>
     <html>
@@ -378,12 +401,17 @@ def mitarbeiter():
             .btn-del { background: #ef4444; }
             .btn-qr { background: #000; }
             .btn-add { background: #16a34a; }
+            .btn-wartung { background: #f59e0b; }
             .form-box { background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
-            .form-box input { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px; margin-right: 5px; }
+            .form-box input, .form-box textarea, .form-box select { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px; margin-right: 5px; margin-bottom: 8px; }
+            .form-box textarea { width: 100%; min-height: 80px; }
             .badge { padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; display: inline-block; }
             .verfuegbar { background: #dcfce7; color: #166534; }
             .reserviert { background: #fef3c7; color: #92400e; }
             .wartung { background: #fee2e2; color: #991b1b; }
+            .offen { background: #fee2e2; color: #991b1b; }
+            .inbearbeitung { background: #fef3c7; color: #92400e; }
+            .erledigt { background: #dcfce7; color: #166534; }
             @media (max-width: 640px) {
                 .header { flex-direction: column; text-align: center; gap: 10px; }
                 table { font-size: 0.8rem; }
@@ -401,6 +429,7 @@ def mitarbeiter():
 
         <div class="tab active" onclick="showTab('fahrraeder')">🚲 Fahrräder</div>
         <div class="tab" onclick="showTab('kunden')">👤 Kunden ({{ kunden|length }})</div>
+        <div class="tab" onclick="showTab('wartungen')">🔧 Wartungen ({{ wartungen|length }})</div>
 
         <div id="tab-fahrraeder" class="tab-content active">
             <div class="form-box">
@@ -428,6 +457,7 @@ def mitarbeiter():
                     <td>{{ rad.standort }}</td>
                     <td>
                         <a href="/qr/{{ rad.id }}" class="btn btn-qr" target="_blank">📱 QR</a>
+                        <a href="/rad/{{ rad.id }}" class="btn btn-wartung">🔧 Historie</a>
                         <a href="/mitarbeiter/delete/{{ rad.id }}" class="btn btn-del" onclick="return confirm('Sicher löschen?')">🗑️ Löschen</a>
                     </td>
                 </tr>
@@ -452,6 +482,25 @@ def mitarbeiter():
             </table>
         </div>
 
+        <div id="tab-wartungen" class="tab-content">
+            <h3>🔧 Alle Wartungen</h3>
+            <table>
+                <tr><th>Fahrrad</th><th>Mitarbeiter</th><th>Problem</th><th>Status</th><th>Datum</th><th>Aktionen</th></tr>
+                {% for w in wartungen %}
+                <tr>
+                    <td>{{ w.fahrrad_id }}</td>
+                    <td>{{ w.mitarbeiter }}</td>
+                    <td>{{ w.problem[:50] }}{% if w.problem|length > 50 %}...{% endif %}</td>
+                    <td><span class="badge {{ 'offen' if w.status == 'Offen' else 'inbearbeitung' if w.status == 'In Bearbeitung' else 'erledigt' }}">{{ w.status }}</span></td>
+                    <td>{{ w.erstellt_am.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td>
+                        <a href="/wartung/{{ w.id }}/edit" class="btn btn-edit">Bearbeiten</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
         <script>
             function showTab(tab) {
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -462,7 +511,9 @@ def mitarbeiter():
         </script>
     </body>
     </html>
-    """, raeder=raeder, kunden=kunden)
+    """, raeder=raeder, kunden=kunden, wartungen=wartungen)
+
+# ==================== MITARBEITER-FUNKTIONEN ====================
 
 @app.route('/mitarbeiter/add', methods=['POST'])
 @login_required
@@ -489,40 +540,11 @@ def delete_rad(id):
         db.session.commit()
     return redirect(url_for('mitarbeiter'))
 
+# ==================== QR-CODE & HISTORIE ====================
+
 @app.route('/qr/<int:id>')
 def show_qr(id):
     rad = Fahrrad.query.get(id)
     if not rad:
         return "Nicht gefunden", 404
-    data = f"{PUBLIC_URL}/rad/{rad.id}"
-    qr = qrcode.QRCode(box_size=10, border=4)
-    qr.add_data(data)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
-    buffered = BytesIO()
-    img.save(buffered, format="PNG")
-    img_str = base64.b64encode(buffered.getvalue()).decode()
-    return f"""
-    <h2>📱 QR-Code für {rad.marke} {rad.modell}</h2>
-    <img src="data:image/png;base64,{img_str}" alt="QR Code">
-    <br><br>
-    <a href="/mitarbeiter">⬅ Zurück zum Dashboard</a>
-    """
-
-@app.route('/rad/<int:id>')
-def fahrradakte(id):
-    rad = Fahrrad.query.get(id)
-    if not rad:
-        return "Nicht gefunden", 404
-    return f"""
-    <h1>📋 Fahrradakte</h1>
-    <p><strong>Nr:</strong> {rad.interne_nummer}</p>
-    <p><strong>Marke:</strong> {rad.marke}</p>
-    <p><strong>Modell:</strong> {rad.modell}</p>
-    <p><strong>Status:</strong> {rad.status}</p>
-    <a href="/">⬅ Zurück</a>
-    """
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    data = f"{PUBLIC_URL}/rad
