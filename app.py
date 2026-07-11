@@ -558,7 +558,8 @@ def show_qr(id):
     html += f'<img src="data:image/png;base64,{img_str}" alt="QR Code">'
     html += '<br><br><a href="/mitarbeiter">⬅ Zurück zum Dashboard</a>'
     return html
-    @app.route('/rad/<int:id>')
+    
+@app.route('/rad/<int:id>')
 def fahrradakte(id):
     rad = Fahrrad.query.get(id)
     if not rad:
