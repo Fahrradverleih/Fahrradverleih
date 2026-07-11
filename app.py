@@ -559,5 +559,11 @@ def fahrradakte(id):
     rad = Fahrrad.query.get(id)
     if not rad:
         return "Nicht gefunden", 404
-    return f"""
-    <h1>📋 Fahr
+    html = '<h1>📋 Fahrradakte</h1>'
+    html += f'<p><strong>Nr:</strong> {rad.interne_nummer}</p>'
+    html += f'<p><strong>Marke:</strong> {rad.marke}</p>'
+    html += f'<p><strong>Modell:</strong> {rad.modell}</p>'
+    html += f'<p><strong>Status:</strong> {rad.status}</p>'
+    html += f'<p><strong>Standort:</strong> {rad.standort}</p>'
+    html += '<a href="/mitarbeiter">⬅ Zurück</a>'
+    return html
