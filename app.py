@@ -2,6 +2,9 @@ from flask import Flask, render_template_string, request, redirect, url_for, ses
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 import os
+import qrcode
+from io import BytesIO
+import base64
 PUBLIC_URL = os.environ.get('PUBLIC_URL', 'https://fahrradverleih.onrender.com')
 
 app = Flask(__name__)
