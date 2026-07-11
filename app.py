@@ -11,6 +11,56 @@ app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'geheimer_schluessel'  # Wichtig für Session!
+
+db = SQLAlchemy(app)
+
+ADMIN_USERNAME = "chef"
+ADMIN_PASSWORD = "geheim123"
+
+PUBLIC_URL = os.environ.get('PUBLIC_URL', 'https://fahrradverleih.onrender.com')
+
+# ... (Der Rest deines Codes bleibt genau gleich, bis zur Login-Funktion) ...
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        if request.form['username'] == ADMIN_USERNAME and request.form['password'] == ADMIN_PASSWORD:
+            session['logged_in'] = True
+            return redirect(url_for('mitarbeiter'))
+        else:
+            return '<h3 style="color:red;">Falscher Name oder Passwort!</h3><a href="/login">Nochmal versuchen</a>'
+    
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head><title>Mitarbeiter Login</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f3f4f6; }
+        .box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; width: 300px; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; }
+        .btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%; }
+    </style>
+    </head>
+    <body>
+    <div class="box">
+        <h2>🔐 Mitarbeiter Login</h2>
+        <form method="POST">
+            <input type="text" name="username" placeholder="Benutzername" required>
+            <input type="password" name="password" placeholder="Passwort" required>
+            <button type="submit" class="btn">Einloggen</button>
+        </form>
+    </div>
+    </body>
+    </html>
+    """
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('kundenansicht'))
+
+# ... (Der Rest deines Codes bleibt ebenfalls unverändert) ...
 app.config['SECRET_KEY'] = 'geheimer_schluessel'
 
 db = SQLAlchemy(app)
