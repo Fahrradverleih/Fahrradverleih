@@ -544,162 +544,45 @@ def mitarbeiter():
     raeder = Fahrrad.query.all()
     kunden = Kunde.query.all()
     wartungen = Wartung.query.all()
-
-    html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Mitarbeiter</title>
-        <style>
-            body { font-family: 'Segoe UI', sans-serif; background:#f8fafc; padding:20px; }
-            .header { background:linear-gradient(135deg,#1e293b,#0f172a); color:white;
-                      padding:20px; border-radius:12px; margin-bottom:20px;
-                      display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
-            .btn-logout { background:#ef4444; color:white; padding:8px 16px; border-radius:8px;
-                          text-decoration:none; font-weight:600; }
-            .btn-logout:hover { background:#dc2626; }
-            .tab { display:inline-block; padding:10px 20px; cursor:pointer; background:#e2e8f0;
-                   border-radius:8px 8px 0 0; margin-right:4px; font-weight:600; }
-            .tab.active { background:white; color:#2563eb; }
-            .tab-content { display:none; background:white; padding:20px; border-radius:0 8px 8px 8px;
-                           border:1px solid #e2e8f0; }
-            .tab-content.active { display:block; }
-            table { width:100%; border-collapse:collapse; margin-top:20px; }
-            th, td { border:1px solid #e2e8f0; padding:10px; text-align:left; }
-            th { background:#f1f5f9; font-weight:700; }
-            .btn { padding:5px 12px; border:none; border-radius:6px; cursor:pointer;
-                   text-decoration:none; color:white; display:inline-block; font-size:0.8rem; font-weight:600; }
-            .btn-edit { background:#2563eb; }
-            .btn-del { background:#ef4444; }
-            .btn-qr { background:#000; }
-            .btn-add { background:#16a34a; }
-            .btn-wartung { background:#f59e0b; }
-            .badge { padding:2px 10px; border-radius:12px; font-size:0.7rem; font-weight:700; display:inline-block; }
-            .verfuegbar { background:#dcfce7; color:#166534; }
-            .reserviert { background:#fef3c7; color:#92400e; }
-            .wartung { background:#fee2e2; color:#991b1b; }
-            .offen { background:#fee2e2; color:#991b1b; }
-            .inbearbeitung { background:#fef3c7; color:#92400e; }
-            .erledigt { background:#dcfce7; color:#166534; }
-        </style>
-    </head>
-    <body>
-
-    <div class="header">
-        <h1>🔧 Mitarbeiter Dashboard</h1>
-        <a href="/logout" class="btn-logout">Logout</a>
-    </div>
-
-    <a href="/">← Zurück zur Kundenansicht</a><br><br>
-
-    <div class="tab active" onclick="showTab('fahrraeder')">🚲 Fahrräder</div>
-    <div class="tab" onclick="showTab('kunden')">👤 Kunden ({})</div>
-    <div class="tab" onclick="showTab('wartungen')">🔧 Wartungen ({})</div>
-    """.format(len(kunden), len(wartungen))
-
-    # ------------------ TAB: FAHRRÄDER ------------------
-    html += """
-    <div id="tab-fahrraeder" class="tab-content active">
-        <div class="form-box">
-            <h3>➕ Neues Fahrrad anlegen</h3>
-            <form action="/mitarbeiter/add" method="POST">
-                Nr: <input type="text" name="interne_nummer" required>
-                Marke: <input type="text" name="marke" required>
-                Modell: <input type="text" name="modell" required>
-                Größe: <input type="text" name="rahmengroesse">
-                Farbe: <input type="text" name="farbe">
-                Standort: <input type="text" name="standort">
-                <button type="submit" class="btn btn-add">Hinzufügen</button>
-            </form>
-        </div>
-
-        <h3>📋 Alle Fahrräder</h3>
-        <table>
-            <tr><th>Nr</th><th>Marke</th><th>Modell</th><th>Status</th><th>Standort</th><th>Aktionen</th></tr>
-    """
-
+    
+    html = '<!DOCTYPE html><html><head><title>Mitarbeiter Dashboard</title>'
+    html += '<style>'
+    html += 'body { font-family: Arial, sans-serif; background: #f0f4f8; padding: 20px; }'
+    html += '.header { background: #1e293b; color: white; padding: 20px; border-radius: 10px; }'
+    html += '.btn-logout { background: #ef4444; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; }'
+    html += 'table { width: 100%; border-collapse: collapse; background: white; }'
+    html += 'th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }'
+    html += 'th { background: #f1f5f9; }'
+    html += '.badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; }'
+    html += '.verfuegbar { background: #dcfce7; color: #166534; }'
+    html += '.reserviert { background: #fef3c7; color: #92400e; }'
+    html += '.btn { padding: 4px 8px; border-radius: 4px; text-decoration: none; color: white; }'
+    html += '.btn-del { background: #ef4444; }'
+    html += '.btn-qr { background: #000; }'
+    html += '</style>'
+    html += '</head><body>'
+    
+    html += f'<div class="header"><h1>🔧 Mitarbeiter Dashboard</h1><a href="/logout" class="btn-logout">Logout</a></div>'
+    html += '<a href="/">← Zurück</a><br><br>'
+    
+    # Fahrräder Tabelle
+    html += '<h2>🚲 Fahrräder</h2>'
+    html += '<table><tr><th>Nr</th><th>Marke</th><th>Modell</th><th>Status</th><th>Aktionen</th></tr>'
     for rad in raeder:
-        status_class = (rad.status or "Verfügbar").lower()
-        html += f"""
-            <tr>
-                <td>{rad.interne_nummer}</td>
-                <td>{rad.marke}</td>
-                <td>{rad.modell}</td>
-                <td><span class="badge {status_class}">{rad.status}</span></td>
-                <td>{rad.standort}</td>
-                <td>
-                    <a href="/qr/{rad.id}" class="btn btn-qr" target="_blank">QR</a>
-                    <a href="/rad/{rad.id}" class="btn btn-wartung">Historie</a>
-                    <a href="/mitarbeiter/delete/{rad.id}" class="btn btn-del" onclick="return confirm('Sicher löschen?')">Löschen</a>
-                </td>
-            </tr>
-        """
-
-    html += "</table></div>"
-
-    # ------------------ TAB: KUNDEN ------------------
-    html += """
-    <div id="tab-kunden" class="tab-content">
-        <h3>👤 Kunden mit Einwilligung</h3>
-        <table>
-            <tr><th>Name</th><th>Email</th><th>Adresse</th><th>DSGVO</th><th>Haftung</th><th>Datum</th></tr>
-    """
-
-    for k in kunden:
-        datum = k.einwilligung_datum.strftime("%d.%m.%Y %H:%M") if k.einwilligung_datum else "-"
-        html += f"""
-            <tr>
-                <td>{k.name}</td>
-                <td>{k.email}</td>
-                <td>{k.adresse}, {k.plz_ort}</td>
-                <td>{"✅" if k.einwilligung_dsgvo else "❌"}</td>
-                <td>{"✅" if k.haftungsausschluss_akzeptiert else "❌"}</td>
-                <td>{datum}</td>
-            </tr>
-        """
-
-    html += "</table></div>"
-
-    # ------------------ TAB: WARTUNGEN ------------------
-    html += """
-    <div id="tab-wartungen" class="tab-content">
-        <h3>🔧 Alle Wartungen</h3>
-        <table>
-            <tr><th>Fahrrad</th><th>Mitarbeiter</th><th>Problem</th><th>Status</th><th>Datum</th><th>Aktionen</th></tr>
-    """
-
-    for w in wartungen:
-        status_class = "offen" if w.status == "Offen" else "inbearbeitung" if w.status == "In Bearbeitung" else "erledigt"
-        problem_text = w.problem[:50] + ("..." if len(w.problem) > 50 else "")
-        datum = w.erstellt_am.strftime("%d.%m.%Y %H:%M")
-
-        html += f"""
-            <tr>
-                <td>{w.fahrrad_id}</td>
-                <td>{w.mitarbeiter}</td>
-                <td>{problem_text}</td>
-                <td><span class="badge {status_class}">{w.status}</span></td>
-                <td>{datum}</td>
-                <td>
-                    <a href="/wartung/{w.id}/edit" class="btn btn-edit">Bearbeiten</a>
-                    <a href="/wartung/{w.id}/delete" class="btn btn-del" onclick="return confirm('Wartung löschen?')">Löschen</a>
-                </td>
-            </tr>
-        """
-
-    html += "</table></div>"
-
-    # ------------------ JS ------------------
-    html += """
-    <script>
-        function showTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelector('[onclick="showTab(\\'' + tab + '\\')"]').classList.add('active');
-            document.getElementById('tab-' + tab).classList.add('active');
-        }
-    </script>
-    </body></html>
-    """
-
+        status_class = 'verfuegbar' if rad.status == 'Verfügbar' else 'reserviert'
+        html += f'<tr><td>{rad.interne_nummer}</td><td>{rad.marke}</td><td>{rad.modell}</td>'
+        html += f'<td><span class="badge {status_class}">{rad.status}</span></td>'
+        html += f'<td><a href="/qr/{rad.id}" class="btn btn-qr">QR</a> '
+        html += f'<a href="/mitarbeiter/delete/{rad.id}" class="btn btn-del" onclick="return confirm(\'Sicher löschen?\')">Löschen</a></td></tr>'
+    html += '</table>'
+    
+    # Kunden Tabelle
+    html += '<h2>👤 Kunden</h2>'
+    html += '<table><tr><th>Name</th><th>Email</th><th>Datum</th></tr>'
+    for k in kunden[:10]:
+        html += f'<tr><td>{k.name}</td><td>{k.email}</td><td>{k.buchungs_datum.strftime("%d.%m.%Y") if k.buchungs_datum else "-"}</td></tr>'
+    html += '</table>'
+    
+    html += '</body></html>'
+    
     return html
