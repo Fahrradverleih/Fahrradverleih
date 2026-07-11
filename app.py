@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, request, redirect, url_for, session, flash
+from flask import Flask, render_template_string, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 import os
@@ -9,16 +9,26 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'geheimer_schluessel'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+# ==================== SICHERHEIT ====================
+
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "fallback_key")
+
+# ==================== DATABASE FIX FÜR RENDER ====================
+
+db_url = os.environ.get("DATABASE_URL")
+
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
 # ==================== LOGIN KONFIGURATION ====================
 
-ADMIN_USERNAME = "chef"
-ADMIN_PASSWORD = "geheim123"
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "chef")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "geheim123")
 
 def login_required(f):
     @wraps(f)
@@ -33,17 +43,12 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        
-        # Debug-Ausgabe (wird in den Render-Logs angezeigt)
-        print(f"Login-Versuch mit: {username}")
-        
+
         if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             session['logged_in'] = True
             session.permanent = True
-            print("Login ERFOLGREICH!")
             return redirect(url_for('mitarbeiter'))
         else:
-            print("Login FEHLGESCHLAGEN!")
             return """
             <!DOCTYPE html>
             <html>
@@ -63,7 +68,7 @@ def login():
             </body>
             </html>
             """
-    
+
     return """
     <!DOCTYPE html>
     <html>
@@ -97,7 +102,21 @@ def logout():
     session.pop('logged_in', None)
     return redirect(url_for('kundenansicht'))
 
-PUBLIC_URL = 'https://fahrradverleih.onrender.com'
+# ==================== FEHLENDE ROUTEN HINZUGEFÜGT ====================
+
+@app.route('/mitarbeiter')
+@login_required
+def mitarbeiter():
+    return "<h1>Mitarbeiterbereich</h1>"
+
+@app.route('/kundenansicht')
+def kundenansicht():
+    return "<h1>Kundenansicht</h1>"
+
+# ==================== PUBLIC URL ====================
+
+PUBLIC_URL = os.environ.get("PUBLIC_URL", "https://fahrradverleih.onrender.com")
+
 
 # ==================== DATENBANK-MODELLE ====================
 
