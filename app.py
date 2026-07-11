@@ -575,7 +575,4 @@ def show_qr(id):
     <head><title>QR-Code für {rad.marke} {rad.modell}</title>
     <style>
         body {{ font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f3f4f6; }}
-        .box {{ background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }}
-        img {{ max-width: 300px; margin: 20px 0; }}
-        .btn {{ background: #2563eb; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; }}
-    </style
+        .box {{ background: white; padding: 40
