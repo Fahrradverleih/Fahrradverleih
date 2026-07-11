@@ -20,8 +20,6 @@ ADMIN_PASSWORD = "geheim123"
 
 PUBLIC_URL = os.environ.get('PUBLIC_URL', 'https://fahrradverleih.onrender.com')
 
-# ==================== DATENBANK-MODELLE ====================
-
 class Fahrrad(db.Model):
     __tablename__ = 'fahrrad'
     id = db.Column(db.Integer, primary_key=True)
@@ -58,7 +56,6 @@ class Reservierung(db.Model):
     reserviert_am = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='Aktiv')
 
-# ====== NEU: Wartungs-Log für Mitarbeiter ======
 class Wartung(db.Model):
     __tablename__ = 'wartung'
     id = db.Column(db.Integer, primary_key=True)
@@ -76,8 +73,6 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
-
-# ==================== LOGIN ====================
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -119,8 +114,6 @@ def login():
 def logout():
     session.pop('logged_in', None)
     return redirect(url_for('kundenansicht'))
-
-# ==================== KUNDENANSICHT ====================
 
 HTML_KUNDEN = """
 <!DOCTYPE html>
@@ -370,8 +363,6 @@ def widerruf():
     <br><a href="/">Zurück</a>
     """
 
-# ==================== MITARBEITER-BEREICH ====================
-
 @app.route('/mitarbeiter')
 @login_required
 def mitarbeiter():
@@ -513,8 +504,6 @@ def mitarbeiter():
     </html>
     """, raeder=raeder, kunden=kunden, wartungen=wartungen)
 
-# ==================== MITARBEITER-FUNKTIONEN ====================
-
 @app.route('/mitarbeiter/add', methods=['POST'])
 @login_required
 def add_rad():
@@ -529,33 +518,4 @@ def add_rad():
     )
     db.session.add(rad)
     db.session.commit()
-    return redirect(url_for('mitarbeiter'))
-
-@app.route('/mitarbeiter/delete/<int:id>')
-@login_required
-def delete_rad(id):
-    rad = Fahrrad.query.get(id)
-    if rad:
-        db.session.delete(rad)
-        db.session.commit()
-    return redirect(url_for('mitarbeiter'))
-
-# ==================== QR-CODE & HISTORIE ====================
-
-@app.route('/qr/<int:id>')
-def show_qr(id):
-    rad = Fahrrad.query.get(id)
-    if not rad:
-        return "Nicht gefunden", 404
-    data = f"{PUBLIC_URL}/rad/{rad.id}"
-    qr = qrcode.QRCode(box_size=10, border=4)
-    qr.add_data(data)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
-    buffered = BytesIO()
-    img.save(buffered, format="PNG")
-    img_str = base64.b64encode(buffered.getvalue()).decode()
-    return f"""
-    <h2>📱 QR-Code für {rad.marke} {rad.modell}</h2>
-    <img src="data:image/png;base64,{img_str}" alt="QR Code">
-    <br><
+    return
