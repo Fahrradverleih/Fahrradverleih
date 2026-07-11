@@ -502,8 +502,4 @@ def mitarbeiter():
                     <td>{{ rad.interne_nummer }}</td>
                     <td>{{ rad.marke }}</td>
                     <td>{{ rad.modell }}</td>
-                    <td><span class="badge {{ 'verfuegbar' if rad.status == 'Verfügbar' else 'reserviert' if rad.status == 'Reserviert' else 'wartung' }}">{{ rad.status }}</span></td>
-                    <td>{{ rad.standort }}</td>
-                    <td>
-                        <a href="/qr/{{ rad.id }}" class="btn btn-qr" target="_blank">📱 QR</a>
-                        <a href="/mitarbeiter/edit/{{
+                    <td><span class="badge {{ 'ver
