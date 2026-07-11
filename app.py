@@ -414,5 +414,4 @@ def delete_rad(id):
     return redirect(url_for('mitarbeiter'))
 
 @app.route('/qr/<int:id>')
-def show_qr(id):
-   
+def
