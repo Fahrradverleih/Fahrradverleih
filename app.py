@@ -492,14 +492,4 @@ def mitarbeiter():
                     Standort: <input type="text" name="standort">
                     <button type="submit" class="btn btn-add">Hinzufügen</button>
                 </form>
-            </div>
-
-            <h3>📋 Alle Fahrräder</h3>
-            <table>
-                <tr><th>Nr</th><th>Marke</th><th>Modell</th><th>Status</th><th>Standort</th><th>Aktionen</th></tr>
-                {% for rad in raeder %}
-                <tr>
-                    <td>{{ rad.interne_nummer }}</td>
-                    <td>{{ rad.marke }}</td>
-                    <td>{{ rad.modell }}</td>
-                    <td><span class="badge {{ 'ver
+            </div
