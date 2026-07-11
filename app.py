@@ -20,6 +20,8 @@ ADMIN_PASSWORD = "geheim123"
 
 PUBLIC_URL = os.environ.get('PUBLIC_URL', 'https://fahrradverleih.onrender.com')
 
+# ==================== DATENBANK-MODELLE ====================
+
 class Fahrrad(db.Model):
     __tablename__ = 'fahrrad'
     id = db.Column(db.Integer, primary_key=True)
@@ -386,8 +388,4 @@ def mitarbeiter():
     html += '</body></html>'
     return html
 
-@app.route('/mitarbeiter/add', methods=['POST'])
-@login_required
-def add_rad():
-    rad = Fahrrad(
-        interne
+@app.route('/mitarbeiter/add', methods=['POST
