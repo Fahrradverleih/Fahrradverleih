@@ -17,7 +17,7 @@ db = SQLAlchemy(app)
 ADMIN_USERNAME = "chef"
 ADMIN_PASSWORD = "geheim123"
 
-PUBLIC_URL = os.environ.get('PUBLIC_URL', 'https://fahrradverleih.onrender.com')
+PUBLIC_URL = 'https://fahrradverleih.onrender.com'
 
 app = Flask(__name__)
 
