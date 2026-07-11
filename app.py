@@ -584,6 +584,4 @@ def mitarbeiter():
     html += '</table>'
     
     html += '</body></html>'
-    
-    
     return html
