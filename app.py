@@ -420,49 +420,5 @@ def qr_code(id):
     if not rad:
         return "Fahrrad nicht gefunden", 404
     
-    # Create QR code data - properly close the f-string
-    qr_data = f"Fahrrad: {rad.marke} {rad.modell} - Nr: {rad.interne_nummer}"
-    
-    # Generate QR code
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=10,
-        border=4,
-    )
-    qr.add_data(qr_data)
-    qr.make(fit=True)
-    
-    img = qr.make_image(fill_color="black", back_color="white")
-    
-    # Save to BytesIO and encode as base64
-    buffered = BytesIO()
-    img.save(buffered, format="PNG")
-    img_str = base64.b64encode(buffered.getvalue()).decode()
-    
-    # Return HTML with QR code image
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>QR Code - {rad.marke} {rad.modell}</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f4f8; flex-direction: column; }}
-            .qr-container {{ background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }}
-            h2 {{ color: #1e293b; margin-bottom: 10px; }}
-            .bike-info {{ color: #64748b; margin-bottom: 20px; }}
-            img {{ max-width: 300px; height: auto; }}
-            .back-btn {{ display: inline-block; margin-top: 20px; padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 8px; }}
-        </style>
-    </head>
-    <body>
-        <div class="qr-container">
-            <h2>🚲 {rad.marke} {rad.modell}</h2>
-            <div class="bike-info">Nr: {rad.interne_nummer} | {rad.farbe} | {rad.rahmengroesse}</div>
-            <img src="data:image/png;base64,{img_str}" alt="QR Code">
-            <br>
-            <a href="/mitarbeiter" class="back-btn">← Zurück</a>
-        </div>
-    </body>
-    </html>
-    """   
+    # Create QR code data
+    qr_data = f"Fahrrad
