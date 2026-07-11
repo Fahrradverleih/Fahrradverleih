@@ -304,7 +304,8 @@ def widerruf():
     </form>
     <br><a href="/">Zurück</a>
     """
-    @app.route('/mitarbeiter')
+
+@app.route('/mitarbeiter')
 @login_required
 def mitarbeiter():
     raeder = Fahrrad.query.all()
@@ -386,7 +387,8 @@ def mitarbeiter():
     html += '</script>'
     html += '</body></html>'
     return html
-    @app.route('/mitarbeiter/add', methods=['POST'])
+
+@app.route('/mitarbeiter/add', methods=['POST'])
 @login_required
 def add_rad():
     rad = Fahrrad(
@@ -402,4 +404,17 @@ def add_rad():
     db.session.commit()
     return redirect(url_for('mitarbeiter'))
 
-@app.route('/mitarbeiter/delete/<int:id
+@app.route('/mitarbeiter/delete/<int:id>')
+@login_required
+def delete_rad(id):
+    rad = Fahrrad.query.get(id)
+    if rad:
+        db.session.delete(rad)
+        db.session.commit()
+    return redirect(url_for('mitarbeiter'))
+
+@app.route('/qr/<int:id>')
+@login_required
+def qr_code(id):
+    rad = Fahrrad.query.get(id)
+    if not rad:
