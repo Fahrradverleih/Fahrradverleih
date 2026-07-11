@@ -421,4 +421,4 @@ def qr_code(id):
         return "Fahrrad nicht gefunden", 404
     
     # Create QR code data
-   
+    qr_data = f"Fahrrad: {   
