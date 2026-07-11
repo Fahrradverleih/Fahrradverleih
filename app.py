@@ -559,4 +559,4 @@ def show_qr(id):
     <h2>📱 QR-Code für {rad.marke} {rad.modell}</h2>
     <img src="data:image/png;base64,{img_str}" alt="QR Code">
     <br><br>
-    <a href="/mitarbeiter">⬅ Zurück
+    <a href="/mitarbeiter">⬅ Zurück zum Dashboard</a
