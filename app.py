@@ -404,15 +404,6 @@ def add_rad():
     db.session.commit()
     return redirect(url_for('mitarbeiter'))
 
-@app.route('/mitarbeiter/delete/<int:id>')
-@login_required
-def delete_rad(id):
-    rad = Fahrrad.query.get(id)
-    if rad:
-        db.session.delete(rad)
-        db.session.commit()
-    return redirect(url_for('mitarbeiter'))
-
 @app.route('/qr/<int:id>')
 @login_required
 def qr_code(id):
@@ -420,7 +411,7 @@ def qr_code(id):
     if not rad:
         return "Fahrrad nicht gefunden", 404
     
-    # Create QR code data - properly close the f-string
+    # QR code data with complete information
     qr_data = f"Fahrrad: {rad.marke} {rad.modell} - Nr: {rad.interne_nummer}"
     
     # Generate QR code
@@ -466,3 +457,6 @@ def qr_code(id):
     </body>
     </html>
     """
+
+if __name__ == '__main__':
+    app.run(debug=True)
