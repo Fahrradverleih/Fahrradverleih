@@ -68,8 +68,6 @@ class Wartung(db.Model):
     erstellt_am = db.Column(db.DateTime, default=datetime.utcnow)
     erledigt_am = db.Column(db.DateTime, nullable=True)
 
-# ==================== LOGIN ====================
-
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -81,14 +79,11 @@ def login_required(f):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+        if request.form['username'] == ADMIN_USERNAME and request.form['password'] == ADMIN_PASSWORD:
             session['logged_in'] = True
-            session.permanent = True
             return redirect(url_for('mitarbeiter'))
         else:
-            return "<h3 style='color:red;'>❌ Falscher Name oder Passwort!</h3><a href='/login'>Nochmal versuchen</a>"
+            return "<h3 style='color:red;'>Falscher Name oder Passwort!</h3><a href='/login'>Nochmal versuchen</a>"
     
     return """
     <!DOCTYPE html>
@@ -107,7 +102,7 @@ def login():
     <body>
     <div class="box">
         <div class="logo">🚲</div>
-        <h2 style="color: #1e293b;">Mitarbeiter Login</h2>
+        <h2>Mitarbeiter Login</h2>
         <form method="POST">
             <input type="text" name="username" placeholder="Benutzername" required>
             <input type="password" name="password" placeholder="Passwort" required>
@@ -565,5 +560,4 @@ def fahrradakte(id):
     if not rad:
         return "Nicht gefunden", 404
     return f"""
-    <h1>📋 Fahrradakte</h1>
-    <p><strong>
+    <h1>📋 Fahr
