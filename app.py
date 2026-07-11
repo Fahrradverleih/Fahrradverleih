@@ -9,7 +9,7 @@ import os
 
 app = Flask(__name__)
 
-# ========== SUPABASE DATENBANK (über Environment Variable) ==========
+# ========== SUPABASE DATENBANK ==========
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'geheimer_schluessel'
@@ -77,21 +77,43 @@ def login():
             session['logged_in'] = True
             return redirect(url_for('mitarbeiter'))
         else:
-            return "<h3 style='color:red;'>Falscher Name oder Passwort!</h3><a href='/login'>Nochmal versuchen</a>"
+            return """
+            <!DOCTYPE html>
+            <html>
+            <head><title>Login fehlgeschlagen</title>
+            <style>
+                body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f3f4f6; }
+                .box { background: white; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+                .btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; }
+            </style>
+            </head>
+            <body>
+            <div class="box">
+                <h2 style="color: #ef4444;">❌ Falscher Name oder Passwort!</h2>
+                <a href="/login" class="btn">Nochmal versuchen</a>
+            </div>
+            </body>
+            </html>
+            """
+    
     return """
     <!DOCTYPE html>
     <html>
     <head><title>Mitarbeiter Login</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f3f4f6; }
-        .box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; width: 300px; }
-        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; }
-        .btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%; }
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; width: 320px; }
+        .logo { font-size: 3rem; margin-bottom: 10px; }
+        input { width: 90%; padding: 12px; margin: 10px 0; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s; }
+        input:focus { border-color: #667eea; outline: none; }
+        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: 600; transition: transform 0.2s; }
+        .btn:hover { transform: scale(1.02); }
     </style>
     </head>
     <body>
     <div class="box">
-        <h2>🔐 Mitarbeiter Login</h2>
+        <div class="logo">🚲</div>
+        <h2 style="color: #1e293b;">Mitarbeiter Login</h2>
         <form method="POST">
             <input type="text" name="username" placeholder="Benutzername" required>
             <input type="password" name="password" placeholder="Passwort" required>
@@ -112,51 +134,76 @@ def logout():
 HTML_KUNDEN = """
 <!DOCTYPE html>
 <html>
-<head><title>Fahrradverleih</title>
-<style>
-    body { font-family: sans-serif; background: #f3f4f6; padding: 20px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; }
-    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; display: inline-block; }
-    .verfuegbar { background: #d1fae5; color: #065f46; }
-    .reserviert { background: #fef3c7; color: #92400e; }
-    .wartung { background: #fee2e2; color: #991b1b; }
-    .btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: 600; margin-top: 10px; }
-    .btn:hover { background: #1d4ed8; }
-    .btn:disabled { background: #9ca3af; cursor: not-allowed; }
-    input { width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; margin-bottom: 8px; font-size: 0.9rem; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .full-width { grid-column: span 2; }
-    h3 { margin-top: 0; margin-bottom: 5px; }
-    p { margin: 5px 0; color: #4b5563; }
-    .checkbox-group { display: flex; align-items: flex-start; gap: 10px; margin: 10px 0; font-size: 0.85rem; }
-    .checkbox-group input { width: auto; margin-top: 3px; }
-    .checkbox-group label { color: #374151; }
-    .ds-link { color: #2563eb; cursor: pointer; text-decoration: underline; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
-    .modal-content { background: white; padding: 30px; border-radius: 12px; max-width: 600px; max-height: 80vh; overflow-y: auto; }
-    .modal-close { float: right; background: #ef4444; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; }
-    .footer { margin-top: 40px; text-align: center; font-size: 0.85rem; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 20px; }
-    .warning-box { background: #fef2f2; border-left: 4px solid #ef4444; padding: 10px; margin: 10px 0; font-size: 0.85rem; }
-</style>
+<head>
+    <title>🚲 Fahrradverleih</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; padding: 20px; }
+        .header { background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); color: white; padding: 30px 20px; border-radius: 16px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3); }
+        .header h1 { font-size: 2rem; display: flex; align-items: center; gap: 10px; }
+        .header h1 span { font-size: 2.5rem; }
+        .header .sub { font-size: 0.9rem; opacity: 0.9; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 24px; }
+        .card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: transform 0.2s, box-shadow 0.2s; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .card h3 { font-size: 1.3rem; color: #1e293b; margin-bottom: 8px; }
+        .card p { color: #64748b; margin: 4px 0; font-size: 0.95rem; }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-block; text-transform: uppercase; letter-spacing: 0.5px; }
+        .verfuegbar { background: #dcfce7; color: #166534; }
+        .reserviert { background: #fef3c7; color: #92400e; }
+        .wartung { background: #fee2e2; color: #991b1b; }
+        .btn { background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: 700; font-size: 1rem; transition: transform 0.2s, box-shadow 0.2s; }
+        .btn:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
+        .btn:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+        input, select { width: 100%; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; font-size: 0.95rem; transition: border-color 0.3s; }
+        input:focus { border-color: #2563eb; outline: none; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .full-width { grid-column: span 2; }
+        .checkbox-group { display: flex; align-items: flex-start; gap: 10px; margin: 10px 0; font-size: 0.85rem; color: #334155; }
+        .checkbox-group input { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: #2563eb; }
+        .checkbox-group label { line-height: 1.4; }
+        .ds-link { color: #2563eb; cursor: pointer; text-decoration: underline; font-weight: 600; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .modal-content { background: white; padding: 30px; border-radius: 16px; max-width: 600px; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-close { float: right; background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .footer { margin-top: 40px; text-align: center; font-size: 0.85rem; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .footer a { color: #2563eb; text-decoration: none; font-weight: 600; transition: color 0.2s; }
+        .footer a:hover { color: #7c3aed; text-decoration: underline; }
+        .warning-box { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; margin: 10px 0; font-size: 0.85rem; color: #991b1b; border-radius: 4px; }
+        @media (max-width: 640px) {
+            .header { flex-direction: column; text-align: center; }
+            .header h1 { font-size: 1.5rem; justify-content: center; }
+            .grid { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
+        }
+        .logo-img { font-size: 2.5rem; background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 12px; backdrop-filter: blur(4px); }
+    </style>
 </head>
 <body>
-    <h1>🚴 Fahrradverleih</h1>
+    <div class="header">
+        <div>
+            <h1><span>🚲</span> Fahrradverleih</h1>
+            <div class="sub">📍 Dein zuverlässiger Partner für Fahrradmiete</div>
+        </div>
+        <div class="logo-img">⭐ 4.8</div>
+    </div>
     
     <!-- ====== DSGVO MODAL ====== -->
     <div id="dsgvoModal" class="modal">
         <div class="modal-content">
             <button class="modal-close" onclick="document.getElementById('dsgvoModal').style.display='none'">✕</button>
-            <h2>📄 Datenschutzerklärung (DSGVO)</h2>
-            <hr>
+            <h2 style="color: #1e293b;">📄 Datenschutzerklärung (DSGVO)</h2>
+            <hr style="margin: 15px 0; border-color: #e2e8f0;">
             <p><strong>Verantwortlicher:</strong> Fahrradverleih GmbH, Musterstraße 1, 12345 Berlin</p>
-            <p><strong>Zweck der Datenerhebung:</strong> Ihre Daten (Name, Adresse, E-Mail, Ausweisnummer) werden ausschließlich zur Abwicklung der Fahrradvermietung erhoben und gespeichert. Ohne diese Daten können wir keinen Mietvertrag abschließen.</p>
+            <p><strong>Zweck der Datenerhebung:</strong> Ihre Daten werden ausschließlich zur Abwicklung der Fahrradvermietung erhoben.</p>
             <p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) und Art. 6 Abs. 1 lit. a DSGVO (Einwilligung).</p>
-            <p><strong>Speicherdauer:</strong> Ihre Daten werden bis zu 7 Tage nach der Rückgabe des Fahrrads gespeichert und dann gelöscht, sofern keine gesetzlichen Aufbewahrungspflichten (z.B. steuerrechtlich) bestehen.</p>
-            <p><strong>Weitergabe:</strong> Ihre Daten werden nicht an Dritte weitergegeben.</p>
-            <p><strong>Ihre Rechte:</strong> Sie haben jederzeit das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung und Datenübertragbarkeit. Kontaktieren Sie uns unter <a href="mailto:datenschutz@fahrradverleih.de">datenschutz@fahrradverleih.de</a>.</p>
-            <p><strong>Widerruf:</strong> Sie können Ihre Einwilligung jederzeit <a href="/widerruf" target="_blank">hier</a> widerrufen.</p>
-            <p><small>Stand: Juli 2026</small></p>
+            <p><strong>Speicherdauer:</strong> 7 Tage nach Rückgabe, dann Löschung.</p>
+            <p><strong>Weitergabe:</strong> Keine Weitergabe an Dritte.</p>
+            <p><strong>Ihre Rechte:</strong> Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung und Datenübertragbarkeit. Kontakt: <a href="mailto:datenschutz@fahrradverleih.de" style="color: #2563eb;">datenschutz@fahrradverleih.de</a></p>
+            <p><strong>Widerruf:</strong> Jederzeit <a href="/widerruf" target="_blank" style="color: #2563eb;">hier</a> möglich.</p>
+            <p><small style="color: #94a3b8;">Stand: Juli 2026</small></p>
         </div>
     </div>
 
@@ -164,26 +211,21 @@ HTML_KUNDEN = """
     <div id="haftungModal" class="modal">
         <div class="modal-content">
             <button class="modal-close" onclick="document.getElementById('haftungModal').style.display='none'">✕</button>
-            <h2>⚠️ Haftungsausschluss</h2>
-            <hr>
-            <p><strong>1. Nutzung auf eigene Gefahr</strong><br>
-            Die Nutzung der Fahrräder erfolgt ausschließlich auf eigene Gefahr. Der Mieter versichert, dass er das Fahrrad sicher beherrscht und alle Verkehrsregeln kennt und einhält.</p>
-            <p><strong>2. Haftungsfreistellung</strong><br>
-            Der Mieter stellt den Verleiher von allen Ansprüchen Dritter frei, die im Zusammenhang mit der Nutzung des Fahrrads entstehen. Der Mieter haftet für alle Schäden, die durch unsachgemäße Nutzung, Missachtung der Verkehrsregeln oder höhere Gewalt entstehen.</p>
-            <p><strong>3. Eigenverantwortung</strong><br>
-            Der Mieter ist selbst verantwortlich für die Prüfung des Fahrrads auf Verkehrssicherheit (Bremsen, Beleuchtung, Reifen) vor Fahrtantritt. Bei Mängeln ist der Verleiher unverzüglich zu informieren.</p>
-            <p><strong>4. Versicherung</strong><br>
-            Der Mieter ist angehalten, eine eigene Haftpflichtversicherung abzuschließen, die Schäden im Zusammenhang mit der Fahrradnutzung abdeckt.</p>
-            <p><strong>5. Unfälle</strong><br>
-            Bei Unfällen oder Stürzen haftet der Mieter selbst. Der Verleiher übernimmt keine Haftung für Personen- oder Sachschäden, die während der Mietzeit entstehen.</p>
-            <p><small>Stand: Juli 2026</small></p>
+            <h2 style="color: #1e293b;">⚠️ Haftungsausschluss</h2>
+            <hr style="margin: 15px 0; border-color: #e2e8f0;">
+            <p><strong>1. Nutzung auf eigene Gefahr</strong><br>Die Nutzung der Fahrräder erfolgt ausschließlich auf eigene Gefahr. Der Mieter versichert, dass er das Fahrrad sicher beherrscht und alle Verkehrsregeln kennt.</p>
+            <p><strong>2. Haftungsfreistellung</strong><br>Der Mieter stellt den Verleiher von allen Ansprüchen Dritter frei, die im Zusammenhang mit der Nutzung entstehen. Der Mieter haftet für alle Schäden durch unsachgemäße Nutzung.</p>
+            <p><strong>3. Eigenverantwortung</strong><br>Der Mieter ist selbst verantwortlich für die Prüfung des Fahrrads auf Verkehrssicherheit (Bremsen, Beleuchtung, Reifen) vor Fahrtantritt.</p>
+            <p><strong>4. Versicherung</strong><br>Der Mieter ist angehalten, eine eigene Haftpflichtversicherung abzuschließen.</p>
+            <p><strong>5. Unfälle</strong><br>Bei Unfällen oder Stürzen haftet der Mieter selbst. Der Verleiher übernimmt keine Haftung für Personen- oder Sachschäden.</p>
+            <p><small style="color: #94a3b8;">Stand: Juli 2026</small></p>
         </div>
     </div>
 
     <div class="grid">
         {% for rad in raeder %}
         <div class="card">
-            <h3>{{ rad.marke }} {{ rad.modell }}</h3>
+            <h3>🚲 {{ rad.marke }} {{ rad.modell }}</h3>
             <p><strong>Nr:</strong> {{ rad.interne_nummer }}<br>
             <strong>Größe:</strong> {{ rad.rahmengroesse }} / {{ rad.farbe }}<br>
             <strong>Standort:</strong> {{ rad.standort }}</p>
@@ -197,58 +239,54 @@ HTML_KUNDEN = """
                 <form action="/reservieren/{{ rad.id }}" method="POST" onsubmit="return validateForm(this)">
                     <input type="text" name="kunde" placeholder="Vor- und Nachname *" required class="full-width">
                     <div class="form-grid">
-                        <input type="email" name="email" placeholder="E-Mail-Adresse *" required>
+                        <input type="email" name="email" placeholder="E-Mail *" required>
                         <input type="text" name="ausweis" placeholder="Ausweis-Nr. *" required>
                         <input type="text" name="adresse" placeholder="Straße & Hausnr. *" required class="full-width">
                         <input type="text" name="plz_ort" placeholder="PLZ & Ort *" required class="full-width">
                     </div>
                     
-                    <!-- ====== DSGVO CHECKBOX ====== -->
                     <div class="checkbox-group">
                         <input type="checkbox" id="dsgvo_{{ rad.id }}" name="dsgvo" required>
                         <label for="dsgvo_{{ rad.id }}">
                             Ich habe die <span class="ds-link" onclick="document.getElementById('dsgvoModal').style.display='flex'">Datenschutzerklärung</span> gelesen und stimme der Speicherung meiner Daten gemäß DSGVO zu. 
-                            Die Einwilligung kann jederzeit <a href="/widerruf" target="_blank">widerrufen</a> werden.
+                            Die Einwilligung kann jederzeit <a href="/widerruf" target="_blank" style="color: #2563eb;">widerrufen</a> werden.
                         </label>
                     </div>
 
-                    <!-- ====== HAFTUNG CHECKBOX ====== -->
                     <div class="checkbox-group">
                         <input type="checkbox" id="haftung_{{ rad.id }}" name="haftung" required>
                         <label for="haftung_{{ rad.id }}">
-                            Ich habe den <span class="ds-link" onclick="document.getElementById('haftungModal').style.display='flex'">Haftungsausschluss</span> gelesen und akzeptiere, dass ich die volle Verantwortung für die Nutzung des Fahrrads trage.
+                            Ich habe den <span class="ds-link" onclick="document.getElementById('haftungModal').style.display='flex'">Haftungsausschluss</span> gelesen und akzeptiere, dass ich die volle Verantwortung für die Nutzung trage.
                         </label>
                     </div>
 
                     <div class="warning-box">
-                        ⚠️ <strong>Wichtig:</strong> Mit der Buchung bestätigen Sie, dass Sie das Fahrrad auf Verkehrssicherheit geprüft haben und die Nutzung auf eigene Gefahr erfolgt.
+                        ⚠️ <strong>Wichtig:</strong> Mit der Buchung bestätigen Sie die Prüfung auf Verkehrssicherheit und die Nutzung auf eigene Gefahr.
                     </div>
                     
-                    <button type="submit" class="btn">Jetzt verbindlich reservieren</button>
+                    <button type="submit" class="btn">✅ Jetzt verbindlich reservieren</button>
                 </form>
             {% else %}
-                <p style="color: #6b7280; font-style: italic;">Aktuell nicht verfügbar</p>
+                <p style="color: #94a3b8; font-style: italic;">🔒 Aktuell nicht verfügbar</p>
             {% endif %}
         </div>
         {% endfor %}
     </div>
 
     <div class="footer">
-        <a href="/widerruf" target="_blank">Einwilligung widerrufen</a> | 
-        <span class="ds-link" onclick="document.getElementById('dsgvoModal').style.display='flex'">Datenschutzerklärung</span> | 
-        <span class="ds-link" onclick="document.getElementById('haftungModal').style.display='flex'">Haftungsausschluss</span> | 
+        <a href="/widerruf" target="_blank">🔒 Einwilligung widerrufen</a>
+        <span class="ds-link" onclick="document.getElementById('dsgvoModal').style.display='flex'">📄 Datenschutzerklärung</span>
+        <span class="ds-link" onclick="document.getElementById('haftungModal').style.display='flex'">⚠️ Haftungsausschluss</span>
         <a href="/mitarbeiter" target="_blank">🔐 Mitarbeiter-Login</a>
     </div>
 
     <script>
         function validateForm(form) {
-            // Prüfe DSGVO-Checkbox
             const dsgvo = form.querySelector('input[name="dsgvo"]');
             if (!dsgvo.checked) {
                 alert('Bitte stimmen Sie der Datenschutzerklärung zu.');
                 return false;
             }
-            // Prüfe Haftungs-Checkbox
             const haftung = form.querySelector('input[name="haftung"]');
             if (!haftung.checked) {
                 alert('Bitte akzeptieren Sie den Haftungsausschluss.');
@@ -256,7 +294,6 @@ HTML_KUNDEN = """
             }
             return true;
         }
-        // Modal schließen bei Klick außerhalb
         window.onclick = function(event) {
             const dsgvoModal = document.getElementById('dsgvoModal');
             const haftungModal = document.getElementById('haftungModal');
@@ -277,7 +314,7 @@ def kundenansicht():
     raeder = Fahrrad.query.all()
     return render_template_string(HTML_KUNDEN, raeder=raeder)
 
-# ==================== RESERVIEREN (MIT DSGVO + HAFTUNG) ====================
+# ==================== RESERVIEREN ====================
 
 @app.route('/reservieren/<int:id>', methods=['POST'])
 def reservieren(id):
@@ -285,7 +322,6 @@ def reservieren(id):
     if not rad or rad.status != 'Verfügbar':
         return redirect(url_for('kundenansicht'))
     
-    # Prüfe DSGVO und Haftung
     dsgvo_ok = request.form.get('dsgvo') == 'on'
     haftung_ok = request.form.get('haftung') == 'on'
     
@@ -294,7 +330,6 @@ def reservieren(id):
     if not haftung_ok:
         return "Fehler: Sie müssen den Haftungsausschluss akzeptieren.", 400
     
-    # Kunden anlegen
     kunde = Kunde(
         name=request.form['kunde'],
         email=request.form['email'],
@@ -309,21 +344,19 @@ def reservieren(id):
     db.session.add(kunde)
     db.session.flush()
     
-    # Reservierung speichern
     reservierung = Reservierung(
         fahrrad_id=rad.id,
         kunde_id=kunde.id
     )
     db.session.add(reservierung)
     
-    # Fahrrad auf reserviert setzen
     rad.status = 'Reserviert'
     db.session.commit()
     
-    flash('Vielen Dank! Ihre Reservierung wurde erfolgreich gebucht. Bitte prüfen Sie vor Fahrtantritt die Verkehrssicherheit des Fahrrads.', 'success')
+    flash('Vielen Dank! Ihre Reservierung wurde erfolgreich gebucht.', 'success')
     return redirect(url_for('kundenansicht'))
 
-# ==================== WIDERRUF DER EINWILLIGUNG ====================
+# ==================== WIDERRUF ====================
 
 @app.route('/widerruf', methods=['GET', 'POST'])
 def widerruf():
@@ -332,31 +365,52 @@ def widerruf():
         if not email:
             return "Bitte E-Mail-Adresse angeben.", 400
         
-        # Kunden mit dieser Email finden
         kunden = Kunde.query.filter_by(email=email, einwilligung_dsgvo=True).all()
         if not kunden:
-            return "Keine Einwilligung für diese E-Mail-Adresse gefunden.", 404
+            return """
+            <!DOCTYPE html>
+            <html>
+            <head><title>Widerruf</title>
+            <style>
+                body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f3f4f6; }
+                .box { background: white; padding: 40px; border-radius: 12px; text-align: center; }
+                .btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; }
+            </style>
+            </head>
+            <body>
+            <div class="box">
+                <h2>❌ Keine Einwilligung für diese E-Mail gefunden.</h2>
+                <a href="/widerruf" class="btn">Zurück</a>
+            </div>
+            </body>
+            </html>
+            """
         
-        # Alle Einwilligungen widerrufen (Daten anonymisieren)
         for kunde in kunden:
             kunde.einwilligung_dsgvo = False
             kunde.widerrufen_am = datetime.utcnow()
-            # Daten anonymisieren (außer für gesetzliche Pflichten)
             kunde.name = "[Anonymisiert]"
             kunde.adresse = "[Anonymisiert]"
             kunde.plz_ort = "[Anonymisiert]"
             kunde.ausweis = "[Anonymisiert]"
-            # Email bleibt für Nachweis
         db.session.commit()
         
         return """
         <!DOCTYPE html>
         <html>
-        <head><title>Widerruf erfolgreich</title></head>
-        <body style="font-family:sans-serif; padding:40px; text-align:center;">
-            <h2>✅ Einwilligung erfolgreich widerrufen</h2>
-            <p>Ihre Daten wurden anonymisiert. Die E-Mail-Adresse bleibt für Nachweiszwecke gespeichert.</p>
-            <a href="/">⬅ Zurück zur Startseite</a>
+        <head><title>Widerruf erfolgreich</title>
+        <style>
+            body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f3f4f6; }
+            .box { background: white; padding: 40px; border-radius: 12px; text-align: center; }
+            .btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; }
+        </style>
+        </head>
+        <body>
+        <div class="box">
+            <h2 style="color: #16a34a;">✅ Einwilligung erfolgreich widerrufen</h2>
+            <p>Ihre Daten wurden anonymisiert.</p>
+            <a href="/" class="btn">⬅ Zurück zur Startseite</a>
+        </div>
         </body>
         </html>
         """
@@ -367,9 +421,9 @@ def widerruf():
     <head><title>Einwilligung widerrufen</title>
     <style>
         body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f3f4f6; }
-        .box { background: white; padding: 40px; border-radius: 12px; max-width: 500px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center; }
-        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; }
-        .btn { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%; }
+        .box { background: white; padding: 40px; border-radius: 12px; max-width: 500px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        input { width: 90%; padding: 12px; margin: 10px 0; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; }
+        .btn { background: #ef4444; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: 600; transition: background 0.2s; }
         .btn:hover { background: #dc2626; }
     </style>
     </head>
@@ -379,11 +433,11 @@ def widerruf():
             <p>Geben Sie Ihre E-Mail-Adresse ein, mit der Sie reserviert haben.</p>
             <p style="font-size:0.9rem; color:#6b7280;">Ihre Daten werden dann anonymisiert.</p>
             <form method="POST">
-                <input type="email" name="email" placeholder="E-Mail-Adresse *" required>
+                <input type="email" name="email" placeholder="E-Mail *" required>
                 <button type="submit" class="btn">Einwilligung widerrufen</button>
             </form>
             <br>
-            <a href="/">⬅ Zurück zur Startseite</a>
+            <a href="/" style="color: #2563eb;">⬅ Zurück zur Startseite</a>
         </div>
     </body>
     </html>
@@ -401,28 +455,41 @@ def mitarbeiter():
     <html>
     <head><title>Mitarbeiter Bereich</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f9fafb; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; padding: 20px; }
+        .header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .header h1 { display: flex; align-items: center; gap: 10px; }
+        .btn-logout { background: #ef4444; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background 0.2s; }
+        .btn-logout:hover { background: #dc2626; }
+        .tab { display: inline-block; padding: 10px 20px; cursor: pointer; background: #e2e8f0; border-radius: 8px 8px 0 0; margin-right: 4px; font-weight: 600; transition: background 0.2s; }
+        .tab.active { background: white; color: #2563eb; }
+        .tab-content { display: none; background: white; padding: 20px; border-radius: 0 8px 8px 8px; border: 1px solid #e2e8f0; }
+        .tab-content.active { display: block; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .btn { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; color: white; display: inline-block; margin-right: 2px; font-size: 0.8rem; }
+        th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; }
+        th { background: #f1f5f9; font-weight: 700; color: #1e293b; }
+        .btn { padding: 5px 12px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; color: white; display: inline-block; font-size: 0.8rem; font-weight: 600; }
         .btn-edit { background: #2563eb; }
         .btn-del { background: #ef4444; }
-        .btn-qr { background: #000; color: white; }
-        .form-box { background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e5e7eb; }
-        .btn-logout { background: #6b7280; color: white; padding: 5px 10px; text-decoration: none; border-radius: 4px; float: right; }
-        .badge { padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
-        .verfuegbar { background: #d1fae5; color: #065f46; }
+        .btn-qr { background: #000; }
+        .btn-add { background: #16a34a; }
+        .form-box { background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .form-box input { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px; margin-right: 5px; }
+        .badge { padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; display: inline-block; }
+        .verfuegbar { background: #dcfce7; color: #166534; }
         .reserviert { background: #fef3c7; color: #92400e; }
         .wartung { background: #fee2e2; color: #991b1b; }
-        .tab { display: inline-block; padding: 10px 20px; cursor: pointer; background: #e5e7eb; border-radius: 8px 8px 0 0; margin-right: 4px; }
-        .tab.active { background: white; font-weight: bold; }
-        .tab-content { display: none; background: white; padding: 20px; border-radius: 0 8px 8px 8px; border: 1px solid #e5e7eb; }
-        .tab-content.active { display: block; }
+        @media (max-width: 640px) {
+            .header { flex-direction: column; text-align: center; gap: 10px; }
+            table { font-size: 0.8rem; }
+            th, td { padding: 6px; }
+        }
     </style>
     </head>
     <body>
-        <h1>🔧 Mitarbeiter Dashboard <a href="/logout" class="btn-logout">Logout</a></h1>
+        <div class="header">
+            <h1>🔧 Mitarbeiter Dashboard</h1>
+            <a href="/logout" class="btn-logout">🚪 Logout</a>
+        </div>
         <a href="/">← Zurück zur Kundenansicht</a>
         <br><br>
 
@@ -431,141 +498,19 @@ def mitarbeiter():
 
         <div id="tab-fahrraeder" class="tab-content active">
             <div class="form-box">
-                <h3>Neues Fahrrad anlegen</h3>
+                <h3>➕ Neues Fahrrad anlegen</h3>
                 <form action="/mitarbeiter/add" method="POST">
-                    Nr: <input type="text" name="interne_nummer" required style="width:80px;">
-                    Marke: <input type="text" name="marke" required style="width:120px;">
-                    Modell: <input type="text" name="modell" required style="width:120px;">
-                    Größe: <input type="text" name="rahmengroesse" style="width:60px;">
-                    Farbe: <input type="text" name="farbe" style="width:80px;">
-                    Standort: <input type="text" name="standort" style="width:100px;">
-                    <button type="submit" class="btn" style="background:#10b981;">Hinzufügen</button>
+                    Nr: <input type="text" name="interne_nummer" required>
+                    Marke: <input type="text" name="marke" required>
+                    Modell: <input type="text" name="modell" required>
+                    Größe: <input type="text" name="rahmengroesse">
+                    Farbe: <input type="text" name="farbe">
+                    Standort: <input type="text" name="standort">
+                    <button type="submit" class="btn btn-add">Hinzufügen</button>
                 </form>
             </div>
 
-            <h3>Alle Fahrräder verwalten</h3>
+            <h3>📋 Alle Fahrräder</h3>
             <table>
                 <tr><th>Nr</th><th>Marke</th><th>Modell</th><th>Status</th><th>Standort</th><th>Aktionen</th></tr>
-                {% for rad in raeder %}
-                <tr>
-                    <td>{{ rad.interne_nummer }}</td>
-                    <td>{{ rad.marke }}</td>
-                    <td>{{ rad.modell }}</td>
-                    <td><span class="badge {{ 'verfuegbar' if rad.status == 'Verfügbar' else 'reserviert' if rad.status == 'Reserviert' else 'wartung' }}">{{ rad.status }}</span></td>
-                    <td>{{ rad.standort }}</td>
-                    <td>
-                        <a href="/qr/{{ rad.id }}" class="btn btn-qr" target="_blank">📱 QR</a>
-                        <a href="/mitarbeiter/edit/{{ rad.id }}" class="btn btn-edit">Bearbeiten</a>
-                        <a href="/mitarbeiter/delete/{{ rad.id }}" class="btn btn-del" onclick="return confirm('Sicher löschen?')">Löschen</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
-
-        <div id="tab-kunden" class="tab-content">
-            <h3>Kunden mit Einwilligung</h3>
-            <table>
-                <tr><th>Name</th><th>Email</th><th>Adresse</th><th>DSGVO</th><th>Haftung</th><th>Datum</th></tr>
-                {% for k in kunden %}
-                <tr>
-                    <td>{{ k.name }}</td>
-                    <td>{{ k.email }}</td>
-                    <td>{{ k.adresse }}, {{ k.plz_ort }}</td>
-                    <td>{% if k.einwilligung_dsgvo %}✅{% else %}❌{% endif %}</td>
-                    <td>{% if k.haftungsausschluss_akzeptiert %}✅{% else %}❌{% endif %}</td>
-                    <td>{{ k.einwilligung_datum.strftime('%d.%m.%Y %H:%M') if k.einwilligung_datum else '-' }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
-
-        <script>
-            function showTab(tab) {
-                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-                document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-                document.getElementById('tab-' + tab).classList.add('active');
-                event.target.classList.add('active');
-            }
-        </script>
-    </body>
-    </html>
-    """, raeder=raeder, kunden=kunden)
-
-# ==================== MITARBEITER-FUNKTIONEN ====================
-
-@app.route('/mitarbeiter/add', methods=['POST'])
-@login_required
-def add_rad():
-    neues_rad = Fahrrad(
-        interne_nummer=request.form['interne_nummer'],
-        marke=request.form['marke'],
-        modell=request.form['modell'],
-        rahmengroesse=request.form.get('rahmengroesse', ''),
-        farbe=request.form.get('farbe', ''),
-        standort=request.form.get('standort', ''),
-        status='Verfügbar'
-    )
-    db.session.add(neues_rad)
-    db.session.commit()
-    return redirect(url_for('mitarbeiter'))
-
-@app.route('/mitarbeiter/delete/<int:id>')
-@login_required
-def delete_rad(id):
-    rad = Fahrrad.query.get(id)
-    if rad:
-        db.session.delete(rad)
-        db.session.commit()
-    return redirect(url_for('mitarbeiter'))
-
-@app.route('/mitarbeiter/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
-def edit_rad(id):
-    rad = Fahrrad.query.get(id)
-    if request.method == 'POST':
-        rad.interne_nummer = request.form['interne_nummer']
-        rad.marke = request.form['marke']
-        rad.modell = request.form['modell']
-        rad.rahmengroesse = request.form.get('rahmengroesse', '')
-        rad.farbe = request.form.get('farbe', '')
-        rad.standort = request.form.get('standort', '')
-        rad.status = request.form['status']
-        db.session.commit()
-        return redirect(url_for('mitarbeiter'))
-
-    return f"""
-    <h1>Bearbeite {rad.marke} {rad.modell}</h1>
-    <form method="POST">
-        Nr: <input type="text" name="interne_nummer" value="{rad.interne_nummer}"><br>
-        Marke: <input type="text" name="marke" value="{rad.marke}"><br>
-        Modell: <input type="text" name="modell" value="{rad.modell}"><br>
-        Größe: <input type="text" name="rahmengroesse" value="{rad.rahmengroesse}"><br>
-        Farbe: <input type="text" name="farbe" value="{rad.farbe}"><br>
-        Standort: <input type="text" name="standort" value="{rad.standort}"><br>
-        Status:
-        <select name="status">
-            <option value="Verfügbar" {"selected" if rad.status == "Verfügbar" else ""}>Verfügbar</option>
-            <option value="Reserviert" {"selected" if rad.status == "Reserviert" else ""}>Reserviert</option>
-            <option value="Wartung" {"selected" if rad.status == "Wartung" else ""}>Wartung</option>
-        </select><br><br>
-        <button type="submit">Speichern</button>
-    </form>
-    <br><a href="/mitarbeiter">Zurück zum Dashboard</a>
-    """
-
-# ==================== QR-CODE ====================
-
-@app.route('/qr/<int:id>')
-def show_qr(id):
-    rad = Fahrrad.query.get(id)
-    if not rad:
-        return "Fahrrad nicht gefunden", 404
-    data = f"{PUBLIC_URL}/rad/{rad.id}"
-    qr = qrcode.QRCode(box_size=10, border=4)
-    qr.add_data(data)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
-    buffered = BytesIO()
-    img.save(buffered, format="PNG")
-    img_str
+                {% for rad in raeder
