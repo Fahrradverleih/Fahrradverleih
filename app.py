@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 # ========== SUPABASE DATENBANK ==========
 # DEINE SUPABASE-URL (mit Passwort!)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Top83313!!??@db.geasssxjynysfzypafqf.supabase.co:5432/postgres'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Top83313%21%21%3F%3F@db.geasssxjynysfzypafqf.supabase.co:5432/postgres'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'geheimer_schluessel'
 
