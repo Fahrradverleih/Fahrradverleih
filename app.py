@@ -9,7 +9,8 @@ import os
 
 app = Flask(__name__)
 
-# ========== SUPABASE DATENBANK (mit DEINER URL!) ==========
+# ========== SUPABASE DATENBANK ==========
+# DEINE SUPABASE-URL (mit Passwort!)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Top83313!!??@db.geasssxjynysfzypafqf.supabase.co:5432/postgres'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'geheimer_schluessel'
@@ -463,7 +464,9 @@ def fahrradakte(id):
     <a href="/">⬅ Zurück</a>
     """
 
-# ==================== START ====================
+# ==================== START (ANGEPASST FÜR RENDER) ====================
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Render setzt die PORT-Umgebungsvariable automatisch
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
