@@ -554,4 +554,19 @@ def show_qr(id):
     buffered = BytesIO()
     img.save(buffered, format="PNG")
     img_str = base64.b64encode(buffered.getvalue()).decode()
-    return f'<h2>📱 QR-Code für {rad.marke} {rad.modell}</h2><img src="data:image/png;base64,{img_str}" alt="QR Code"><br><br><a href="/
+    html = f'<h2>📱 QR-Code für {rad.marke} {rad.modell}</h2>'
+    html += f'<img src="data:image/png;base64,{img_str}" alt="QR Code">'
+    html += '<br><br><a href="/mitarbeiter">⬅ Zurück zum Dashboard</a>'
+    return html
+    @app.route('/rad/<int:id>')
+def fahrradakte(id):
+    rad = Fahrrad.query.get(id)
+    if not rad:
+        return "Nicht gefunden", 404
+    html = f'<h1>📋 Fahrradakte</h1>'
+    html += f'<p><strong>Nr:</strong> {rad.interne_nummer}</p>'
+    html += f'<p><strong>Marke:</strong> {rad.marke}</p>'
+    html += f'<p><strong>Modell:</strong> {rad.modell}</p>'
+    html += f'<p><strong>Status:</strong> {rad.status}</p>'
+    html += '<a href="/mitarbeiter">⬅ Zurück</a>'
+    return html
