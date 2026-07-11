@@ -5,6 +5,7 @@ import os
 import qrcode
 from io import BytesIO
 import base64
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -118,8 +119,6 @@ def login():
 def logout():
     session.pop('logged_in', None)
     return redirect(url_for('kundenansicht'))
-
-# ==================== KUNDENANSICHT ====================
 
 @app.route('/')
 def kundenansicht():
@@ -237,8 +236,6 @@ def kundenansicht():
     html += '</body></html>'
     return html
 
-# ==================== RESERVIEREN ====================
-
 @app.route('/reservieren/<int:id>', methods=['POST'])
 def reservieren(id):
     rad = Fahrrad.query.get(id)
@@ -276,8 +273,6 @@ def reservieren(id):
     flash('✅ Reservierung erfolgreich!', 'success')
     return redirect(url_for('kundenansicht'))
 
-# ==================== WIDERRUF ====================
-
 @app.route('/widerruf', methods=['GET', 'POST'])
 def widerruf():
     if request.method == 'POST':
@@ -309,10 +304,7 @@ def widerruf():
     </form>
     <br><a href="/">Zurück</a>
     """
-
-# ==================== MITARBEITER ====================
-
-@app.route('/mitarbeiter')
+    @app.route('/mitarbeiter')
 @login_required
 def mitarbeiter():
     raeder = Fahrrad.query.all()
@@ -394,10 +386,7 @@ def mitarbeiter():
     html += '</script>'
     html += '</body></html>'
     return html
-
-# ==================== MITARBEITER-FUNKTIONEN ====================
-
-@app.route('/mitarbeiter/add', methods=['POST'])
+    @app.route('/mitarbeiter/add', methods=['POST'])
 @login_required
 def add_rad():
     rad = Fahrrad(
@@ -413,4 +402,4 @@ def add_rad():
     db.session.commit()
     return redirect(url_for('mitarbeiter'))
 
-@app.route('/mit
+@app.route('/mitarbeiter/delete/<int:id
