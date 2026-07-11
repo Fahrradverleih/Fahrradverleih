@@ -9,7 +9,8 @@ import os
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'dein_geheimer_schluessel_hier_12345!'
+# ========== WICHTIG: SECRET_KEY für Session ==========
+app.config['SECRET_KEY'] = 'mein_geheimer_schluessel_12345'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -58,7 +59,6 @@ class Reservierung(db.Model):
     reserviert_am = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='Aktiv')
 
-# ====== NEU: Wartungs-Log für Mitarbeiter ======
 class Wartung(db.Model):
     __tablename__ = 'wartung'
     id = db.Column(db.Integer, primary_key=True)
@@ -69,6 +69,8 @@ class Wartung(db.Model):
     erstellt_am = db.Column(db.DateTime, default=datetime.utcnow)
     erledigt_am = db.Column(db.DateTime, nullable=True)
 
+# ==================== LOGIN ====================
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -77,16 +79,17 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ==================== LOGIN ====================
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        if request.form['username'] == ADMIN_USERNAME and request.form['password'] == ADMIN_PASSWORD:
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             session['logged_in'] = True
             return redirect(url_for('mitarbeiter'))
         else:
-            return "<h3 style='color:red;'>Falscher Name oder Passwort!</h3><a href='/login'>Nochmal versuchen</a>"
+            return "<h3 style='color:red;'>❌ Falscher Name oder Passwort!</h3><a href='/login'>Nochmal versuchen</a>"
+    
     return """
     <!DOCTYPE html>
     <html>
@@ -104,7 +107,7 @@ def login():
     <body>
     <div class="box">
         <div class="logo">🚲</div>
-        <h2>Mitarbeiter Login</h2>
+        <h2 style="color: #1e293b;">Mitarbeiter Login</h2>
         <form method="POST">
             <input type="text" name="username" placeholder="Benutzername" required>
             <input type="password" name="password" placeholder="Passwort" required>
@@ -370,8 +373,6 @@ def widerruf():
     <br><a href="/">Zurück</a>
     """
 
-# ==================== MITARBEITER-BEREICH ====================
-
 @app.route('/mitarbeiter')
 @login_required
 def mitarbeiter():
@@ -513,8 +514,6 @@ def mitarbeiter():
     </html>
     """, raeder=raeder, kunden=kunden, wartungen=wartungen)
 
-# ==================== MITARBEITER-FUNKTIONEN ====================
-
 @app.route('/mitarbeiter/add', methods=['POST'])
 @login_required
 def add_rad():
@@ -540,14 +539,7 @@ def delete_rad(id):
         db.session.commit()
     return redirect(url_for('mitarbeiter'))
 
-# ==================== QR-CODE (vereinfacht) ====================
-
-@app.route('/rad/<int:id>')
-def fahrradakte(id):
-    rad = Fahrrad.query.get(id)
-    if not rad:
-        return "Nicht gefunden", 404
-    return f'<h1>📋 Fahrradakte</h1><p><strong>Nr:</strong> {rad.interne_nummer}</p><p><strong>Marke:</strong> {rad.marke}</p><p><strong>Modell:</strong> {rad.modell}</p><p><strong>Status:</strong> {rad.status}</p><p><strong>Standort:</strong> {rad.standort}</p><a href="/mitarbeiter">⬅ Zurück</a>'
+# ==================== QR-CODE & HISTORIE ====================
 
 @app.route('/qr/<int:id>')
 def show_qr(id):
@@ -562,8 +554,4 @@ def show_qr(id):
     buffered = BytesIO()
     img.save(buffered, format="PNG")
     img_str = base64.b64encode(buffered.getvalue()).decode()
-    return f'<h2>📱 QR-Code für {rad.marke} {rad.modell}</h2><img src="data:image/png;base64,{img_str}" alt="QR Code"><br><br><a href="/mitarbeiter">⬅ Zurück zum Dashboard</a>'
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    return f'<h2>📱 QR-Code für {rad.marke} {rad.modell}</h2><img src="data:image/png;base64,{img_str}" alt="QR Code"><br><br><a href="/
