@@ -10,7 +10,6 @@ import os
 app = Flask(__name__)
 
 # ========== SUPABASE DATENBANK (über Environment Variable) ==========
-# So ist es sicher und funktioniert immer!
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'geheimer_schluessel'
@@ -578,4 +577,6 @@ def show_qr(id):
         body {{ font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f3f4f6; }}
         .box {{ background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }}
         img {{ max-width: 300px; margin: 20px 0; }}
-        .btn {{ background: #2563eb; color: white; text-decoration: none;
+        .btn {{ background: #2563eb; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; }}
+    </style>
+    </head>
