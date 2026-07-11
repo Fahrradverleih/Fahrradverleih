@@ -542,6 +542,13 @@ def delete_rad(id):
 
 # ==================== QR-CODE (vereinfacht) ====================
 
+@app.route('/rad/<int:id>')
+def fahrradakte(id):
+    rad = Fahrrad.query.get(id)
+    if not rad:
+        return "Nicht gefunden", 404
+    return f'<h1>📋 Fahrradakte</h1><p><strong>Nr:</strong> {rad.interne_nummer}</p><p><strong>Marke:</strong> {rad.marke}</p><p><strong>Modell:</strong> {rad.modell}</p><p><strong>Status:</strong> {rad.status}</p><p><strong>Standort:</strong> {rad.standort}</p><a href="/mitarbeiter">⬅ Zurück</a>'
+
 @app.route('/qr/<int:id>')
 def show_qr(id):
     rad = Fahrrad.query.get(id)
@@ -555,5 +562,8 @@ def show_qr(id):
     buffered = BytesIO()
     img.save(buffered, format="PNG")
     img_str = base64.b64encode(buffered.getvalue()).decode()
-    return f"""
-    <h2>
+    return f'<h2>📱 QR-Code für {rad.marke} {rad.modell}</h2><img src="data:image/png;base64,{img_str}" alt="QR Code"><br><br><a href="/mitarbeiter">⬅ Zurück zum Dashboard</a>'
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
