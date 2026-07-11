@@ -9,7 +9,6 @@ import os
 
 app = Flask(__name__)
 
-# ========== WICHTIG: SECRET_KEY für Session ==========
 app.config['SECRET_KEY'] = 'mein_geheimer_schluessel_12345'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -20,8 +19,6 @@ ADMIN_USERNAME = "chef"
 ADMIN_PASSWORD = "geheim123"
 
 PUBLIC_URL = os.environ.get('PUBLIC_URL', 'https://fahrradverleih.onrender.com')
-
-# ==================== DATENBANK-MODELLE ====================
 
 class Fahrrad(db.Model):
     __tablename__ = 'fahrrad'
@@ -68,8 +65,6 @@ class Wartung(db.Model):
     status = db.Column(db.String(20), default='Offen')
     erstellt_am = db.Column(db.DateTime, default=datetime.utcnow)
     erledigt_am = db.Column(db.DateTime, nullable=True)
-
-# ==================== LOGIN ====================
 
 def login_required(f):
     @wraps(f)
@@ -123,7 +118,7 @@ def logout():
     session.pop('logged_in', None)
     return redirect(url_for('kundenansicht'))
 
-# ==================== KUNDENANSICHT ====================
+# ==================== KUNDENANSICHT (vereinfacht) ====================
 
 HTML_KUNDEN = """
 <!DOCTYPE html>
@@ -182,36 +177,6 @@ HTML_KUNDEN = """
         <div class="logo-img">⭐ 4.8</div>
     </div>
     
-    <div id="dsgvoModal" class="modal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="document.getElementById('dsgvoModal').style.display='none'">✕</button>
-            <h2>📄 Datenschutzerklärung (DSGVO)</h2>
-            <hr>
-            <p><strong>Verantwortlicher:</strong> Fahrradverleih GmbH, Musterstraße 1, 12345 Berlin</p>
-            <p><strong>Zweck:</strong> Ihre Daten werden zur Abwicklung der Fahrradvermietung erhoben.</p>
-            <p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) und Art. 6 Abs. 1 lit. a DSGVO (Einwilligung).</p>
-            <p><strong>Speicherdauer:</strong> 7 Tage nach Rückgabe, dann Löschung.</p>
-            <p><strong>Weitergabe:</strong> Keine Weitergabe an Dritte.</p>
-            <p><strong>Ihre Rechte:</strong> Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung und Datenübertragbarkeit. Kontakt: <a href="mailto:datenschutz@fahrradverleih.de">datenschutz@fahrradverleih.de</a></p>
-            <p><strong>Widerruf:</strong> Jederzeit <a href="/widerruf" target="_blank">hier</a> möglich.</p>
-            <p><small>Stand: Juli 2026</small></p>
-        </div>
-    </div>
-
-    <div id="haftungModal" class="modal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="document.getElementById('haftungModal').style.display='none'">✕</button>
-            <h2>⚠️ Haftungsausschluss</h2>
-            <hr>
-            <p><strong>1. Nutzung auf eigene Gefahr</strong><br>Die Nutzung der Fahrräder erfolgt ausschließlich auf eigene Gefahr. Der Mieter versichert, dass er das Fahrrad sicher beherrscht und alle Verkehrsregeln kennt.</p>
-            <p><strong>2. Haftungsfreistellung</strong><br>Der Mieter stellt den Verleiher von allen Ansprüchen Dritter frei, die im Zusammenhang mit der Nutzung entstehen. Der Mieter haftet für alle Schäden durch unsachgemäße Nutzung.</p>
-            <p><strong>3. Eigenverantwortung</strong><br>Der Mieter ist selbst verantwortlich für die Prüfung des Fahrrads auf Verkehrssicherheit (Bremsen, Beleuchtung, Reifen) vor Fahrtantritt.</p>
-            <p><strong>4. Versicherung</strong><br>Der Mieter ist angehalten, eine eigene Haftpflichtversicherung abzuschließen.</p>
-            <p><strong>5. Unfälle</strong><br>Bei Unfällen oder Stürzen haftet der Mieter selbst. Der Verleiher übernimmt keine Haftung für Personen- oder Sachschäden.</p>
-            <p><small>Stand: Juli 2026</small></p>
-        </div>
-    </div>
-
     <div class="grid">
         {% for rad in raeder %}
         <div class="card">
@@ -219,11 +184,9 @@ HTML_KUNDEN = """
             <p><strong>Nr:</strong> {{ rad.interne_nummer }}<br>
             <strong>Größe:</strong> {{ rad.rahmengroesse }} / {{ rad.farbe }}<br>
             <strong>Standort:</strong> {{ rad.standort }}</p>
-
             <span class="badge {{ 'verfuegbar' if rad.status == 'Verfügbar' else 'reserviert' if rad.status == 'Reserviert' else 'wartung' }}">
                 {{ rad.status }}
             </span>
-
             <br><br>
             {% if rad.status == 'Verfügbar' %}
                 <form action="/reservieren/{{ rad.id }}" method="POST" onsubmit="return validateForm(this)">
@@ -238,26 +201,25 @@ HTML_KUNDEN = """
                     <div class="checkbox-group">
                         <input type="checkbox" id="dsgvo_{{ rad.id }}" name="dsgvo" required>
                         <label for="dsgvo_{{ rad.id }}">
-                            Ich habe die <span class="ds-link" onclick="document.getElementById('dsgvoModal').style.display='flex'">Datenschutzerklärung</span> gelesen und stimme der Speicherung meiner Daten gemäß DSGVO zu. 
-                            Die Einwilligung kann jederzeit <a href="/widerruf" target="_blank">widerrufen</a> werden.
+                            Ich habe die Datenschutzerklärung gelesen und stimme zu.
                         </label>
                     </div>
 
                     <div class="checkbox-group">
                         <input type="checkbox" id="haftung_{{ rad.id }}" name="haftung" required>
                         <label for="haftung_{{ rad.id }}">
-                            Ich habe den <span class="ds-link" onclick="document.getElementById('haftungModal').style.display='flex'">Haftungsausschluss</span> gelesen und akzeptiere, dass ich die volle Verantwortung für die Nutzung trage.
+                            Ich habe den Haftungsausschluss gelesen und akzeptiere ihn.
                         </label>
                     </div>
 
                     <div class="warning-box">
-                        ⚠️ <strong>Wichtig:</strong> Mit der Buchung bestätigen Sie die Prüfung auf Verkehrssicherheit und die Nutzung auf eigene Gefahr.
+                        ⚠️ <strong>Wichtig:</strong> Nutzung auf eigene Gefahr.
                     </div>
                     
-                    <button type="submit" class="btn">✅ Jetzt verbindlich reservieren</button>
+                    <button type="submit" class="btn">✅ Jetzt reservieren</button>
                 </form>
             {% else %}
-                <p style="color: #94a3b8; font-style: italic;">🔒 Aktuell nicht verfügbar</p>
+                <p style="color: #94a3b8; font-style: italic;">🔒 Nicht verfügbar</p>
             {% endif %}
         </div>
         {% endfor %}
@@ -265,34 +227,20 @@ HTML_KUNDEN = """
 
     <div class="footer">
         <a href="/widerruf" target="_blank">🔒 Einwilligung widerrufen</a>
-        <span class="ds-link" onclick="document.getElementById('dsgvoModal').style.display='flex'">📄 Datenschutzerklärung</span>
-        <span class="ds-link" onclick="document.getElementById('haftungModal').style.display='flex'">⚠️ Haftungsausschluss</span>
         <a href="/mitarbeiter" target="_blank">🔐 Mitarbeiter-Login</a>
     </div>
 
     <script>
         function validateForm(form) {
-            const dsgvo = form.querySelector('input[name="dsgvo"]');
-            if (!dsgvo.checked) {
+            if (!form.dsgvo.checked) {
                 alert('Bitte stimmen Sie der Datenschutzerklärung zu.');
                 return false;
             }
-            const haftung = form.querySelector('input[name="haftung"]');
-            if (!haftung.checked) {
+            if (!form.haftung.checked) {
                 alert('Bitte akzeptieren Sie den Haftungsausschluss.');
                 return false;
             }
             return true;
-        }
-        window.onclick = function(event) {
-            const dsgvoModal = document.getElementById('dsgvoModal');
-            const haftungModal = document.getElementById('haftungModal');
-            if (event.target === dsgvoModal) {
-                dsgvoModal.style.display = 'none';
-            }
-            if (event.target === haftungModal) {
-                haftungModal.style.display = 'none';
-            }
         }
     </script>
 </body>
@@ -380,138 +328,43 @@ def mitarbeiter():
     kunden = Kunde.query.all()
     wartungen = Wartung.query.all()
     return render_template_string("""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Mitarbeiter Bereich</title>
-        <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; padding: 20px; }
-            .header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-            .header h1 { display: flex; align-items: center; gap: 10px; }
-            .btn-logout { background: #ef4444; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; }
-            .btn-logout:hover { background: #dc2626; }
-            .tab { display: inline-block; padding: 10px 20px; cursor: pointer; background: #e2e8f0; border-radius: 8px 8px 0 0; margin-right: 4px; font-weight: 600; }
-            .tab.active { background: white; color: #2563eb; }
-            .tab-content { display: none; background: white; padding: 20px; border-radius: 0 8px 8px 8px; border: 1px solid #e2e8f0; }
-            .tab-content.active { display: block; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; }
-            th { background: #f1f5f9; font-weight: 700; }
-            .btn { padding: 5px 12px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; color: white; display: inline-block; font-size: 0.8rem; font-weight: 600; }
-            .btn-edit { background: #2563eb; }
-            .btn-del { background: #ef4444; }
-            .btn-qr { background: #000; }
-            .btn-add { background: #16a34a; }
-            .btn-wartung { background: #f59e0b; }
-            .form-box { background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
-            .form-box input, .form-box textarea, .form-box select { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px; margin-right: 5px; margin-bottom: 8px; }
-            .form-box textarea { width: 100%; min-height: 80px; }
-            .badge { padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; display: inline-block; }
-            .verfuegbar { background: #dcfce7; color: #166534; }
-            .reserviert { background: #fef3c7; color: #92400e; }
-            .wartung { background: #fee2e2; color: #991b1b; }
-            .offen { background: #fee2e2; color: #991b1b; }
-            .inbearbeitung { background: #fef3c7; color: #92400e; }
-            .erledigt { background: #dcfce7; color: #166534; }
-            @media (max-width: 640px) {
-                .header { flex-direction: column; text-align: center; gap: 10px; }
-                table { font-size: 0.8rem; }
-                th, td { padding: 6px; }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <h1>🔧 Mitarbeiter Dashboard</h1>
-            <a href="/logout" class="btn-logout">🚪 Logout</a>
-        </div>
-        <a href="/">← Zurück zur Kundenansicht</a>
-        <br><br>
-
-        <div class="tab active" onclick="showTab('fahrraeder')">🚲 Fahrräder</div>
-        <div class="tab" onclick="showTab('kunden')">👤 Kunden ({{ kunden|length }})</div>
-        <div class="tab" onclick="showTab('wartungen')">🔧 Wartungen ({{ wartungen|length }})</div>
-
-        <div id="tab-fahrraeder" class="tab-content active">
-            <div class="form-box">
-                <h3>➕ Neues Fahrrad anlegen</h3>
-                <form action="/mitarbeiter/add" method="POST">
-                    Nr: <input type="text" name="interne_nummer" required>
-                    Marke: <input type="text" name="marke" required>
-                    Modell: <input type="text" name="modell" required>
-                    Größe: <input type="text" name="rahmengroesse">
-                    Farbe: <input type="text" name="farbe">
-                    Standort: <input type="text" name="standort">
-                    <button type="submit" class="btn btn-add">Hinzufügen</button>
-                </form>
-            </div>
-
-            <h3>📋 Alle Fahrräder</h3>
-            <table>
-                <tr><th>Nr</th><th>Marke</th><th>Modell</th><th>Status</th><th>Standort</th><th>Aktionen</th></tr>
-                {% for rad in raeder %}
-                <tr>
-                    <td>{{ rad.interne_nummer }}</td>
-                    <td>{{ rad.marke }}</td>
-                    <td>{{ rad.modell }}</td>
-                    <td><span class="badge {{ 'verfuegbar' if rad.status == 'Verfügbar' else 'reserviert' if rad.status == 'Reserviert' else 'wartung' }}">{{ rad.status }}</span></td>
-                    <td>{{ rad.standort }}</td>
-                    <td>
-                        <a href="/qr/{{ rad.id }}" class="btn btn-qr" target="_blank">📱 QR</a>
-                        <a href="/rad/{{ rad.id }}" class="btn btn-wartung">🔧 Historie</a>
-                        <a href="/mitarbeiter/delete/{{ rad.id }}" class="btn btn-del" onclick="return confirm('Sicher löschen?')">🗑️ Löschen</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
-
-        <div id="tab-kunden" class="tab-content">
-            <h3>👤 Kunden mit Einwilligung</h3>
-            <table>
-                <tr><th>Name</th><th>Email</th><th>Adresse</th><th>DSGVO</th><th>Haftung</th><th>Datum</th></tr>
-                {% for k in kunden %}
-                <tr>
-                    <td>{{ k.name }}</td>
-                    <td>{{ k.email }}</td>
-                    <td>{{ k.adresse }}, {{ k.plz_ort }}</td>
-                    <td>{% if k.einwilligung_dsgvo %}✅{% else %}❌{% endif %}</td>
-                    <td>{% if k.haftungsausschluss_akzeptiert %}✅{% else %}❌{% endif %}</td>
-                    <td>{{ k.einwilligung_datum.strftime('%d.%m.%Y %H:%M') if k.einwilligung_datum else '-' }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
-
-        <div id="tab-wartungen" class="tab-content">
-            <h3>🔧 Alle Wartungen</h3>
-            <table>
-                <tr><th>Fahrrad</th><th>Mitarbeiter</th><th>Problem</th><th>Status</th><th>Datum</th><th>Aktionen</th></tr>
-                {% for w in wartungen %}
-                <tr>
-                    <td>{{ w.fahrrad_id }}</td>
-                    <td>{{ w.mitarbeiter }}</td>
-                    <td>{{ w.problem[:50] }}{% if w.problem|length > 50 %}...{% endif %}</td>
-                    <td><span class="badge {{ 'offen' if w.status == 'Offen' else 'inbearbeitung' if w.status == 'In Bearbeitung' else 'erledigt' }}">{{ w.status }}</span></td>
-                    <td>{{ w.erstellt_am.strftime('%d.%m.%Y %H:%M') }}</td>
-                    <td>
-                        <a href="/wartung/{{ w.id }}/edit" class="btn btn-edit">Bearbeiten</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
-
-        <script>
-            function showTab(tab) {
-                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-                document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-                document.getElementById('tab-' + tab).classList.add('active');
-                event.target.classList.add('active');
-            }
-        </script>
-    </body>
-    </html>
+    <h1>🔧 Mitarbeiter Dashboard</h1>
+    <a href="/logout">Logout</a> | <a href="/">Zurück</a>
+    <hr>
+    <h3>Neues Fahrrad</h3>
+    <form action="/mitarbeiter/add" method="POST">
+        Nr: <input type="text" name="interne_nummer" required>
+        Marke: <input type="text" name="marke" required>
+        Modell: <input type="text" name="modell" required>
+        <button type="submit">Hinzufügen</button>
+    </form>
+    <h3>Alle Fahrräder</h3>
+    <table border="1">
+        <tr><th>Nr</th><th>Marke</th><th>Modell</th><th>Status</th><th>Aktionen</th></tr>
+        {% for rad in raeder %}
+        <tr>
+            <td>{{ rad.interne_nummer }}</td>
+            <td>{{ rad.marke }}</td>
+            <td>{{ rad.modell }}</td>
+            <td>{{ rad.status }}</td>
+            <td>
+                <a href="/qr/{{ rad.id }}">QR</a>
+                <a href="/mitarbeiter/delete/{{ rad.id }}" onclick="return confirm('Löschen?')">Löschen</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <h3>Kunden</h3>
+    <table border="1">
+        <tr><th>Name</th><th>Email</th><th>DSGVO</th></tr>
+        {% for k in kunden %}
+        <tr>
+            <td>{{ k.name }}</td>
+            <td>{{ k.email }}</td>
+            <td>{% if k.einwilligung_dsgvo %}✅{% else %}❌{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
     """, raeder=raeder, kunden=kunden, wartungen=wartungen)
 
 @app.route('/mitarbeiter/add', methods=['POST'])
@@ -521,9 +374,6 @@ def add_rad():
         interne_nummer=request.form['interne_nummer'],
         marke=request.form['marke'],
         modell=request.form['modell'],
-        rahmengroesse=request.form.get('rahmengroesse', ''),
-        farbe=request.form.get('farbe', ''),
-        standort=request.form.get('standort', ''),
         status='Verfügbar'
     )
     db.session.add(rad)
@@ -539,8 +389,6 @@ def delete_rad(id):
         db.session.commit()
     return redirect(url_for('mitarbeiter'))
 
-# ==================== QR-CODE & HISTORIE ====================
-
 @app.route('/qr/<int:id>')
 def show_qr(id):
     rad = Fahrrad.query.get(id)
@@ -554,20 +402,15 @@ def show_qr(id):
     buffered = BytesIO()
     img.save(buffered, format="PNG")
     img_str = base64.b64encode(buffered.getvalue()).decode()
-    html = f'<h2>📱 QR-Code für {rad.marke} {rad.modell}</h2>'
-    html += f'<img src="data:image/png;base64,{img_str}" alt="QR Code">'
-    html += '<br><br><a href="/mitarbeiter">⬅ Zurück zum Dashboard</a>'
-    return html
-    
+    return f'<h2>QR-Code für {rad.marke} {rad.modell}</h2><img src="data:image/png;base64,{img_str}"><br><a href="/mitarbeiter">Zurück</a>'
+
 @app.route('/rad/<int:id>')
 def fahrradakte(id):
     rad = Fahrrad.query.get(id)
     if not rad:
         return "Nicht gefunden", 404
-    html = f'<h1>📋 Fahrradakte</h1>'
-    html += f'<p><strong>Nr:</strong> {rad.interne_nummer}</p>'
-    html += f'<p><strong>Marke:</strong> {rad.marke}</p>'
-    html += f'<p><strong>Modell:</strong> {rad.modell}</p>'
-    html += f'<p><strong>Status:</strong> {rad.status}</p>'
-    html += '<a href="/mitarbeiter">⬅ Zurück</a>'
-    return html
+    return f'<h1>Fahrradakte</h1><p>{rad.marke} {rad.modell}</p><a href="/">Zurück</a>'
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
