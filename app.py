@@ -8,6 +8,8 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'geheimer_schluessel_12345'
+
 
 app.config['SECRET_KEY'] = 'dein_geheimer_schluessel_hier_12345!'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
