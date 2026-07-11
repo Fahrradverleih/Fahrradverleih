@@ -9,7 +9,9 @@ import os
 
 app = Flask(__name__)
 
+# ========== KONFIGURATION ==========
 app.config['SECRET_KEY'] = 'mein_geheimer_schluessel_12345'
+app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -19,6 +21,8 @@ ADMIN_USERNAME = "chef"
 ADMIN_PASSWORD = "geheim123"
 
 PUBLIC_URL = os.environ.get('PUBLIC_URL', 'https://fahrradverleih.onrender.com')
+
+# ==================== DATENBANK-MODELLE ====================
 
 class Fahrrad(db.Model):
     __tablename__ = 'fahrrad'
@@ -66,6 +70,8 @@ class Wartung(db.Model):
     erstellt_am = db.Column(db.DateTime, default=datetime.utcnow)
     erledigt_am = db.Column(db.DateTime, nullable=True)
 
+# ==================== LOGIN ====================
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -76,33 +82,37 @@ def login_required(f):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = None
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             session['logged_in'] = True
+            session.permanent = True
             return redirect(url_for('mitarbeiter'))
         else:
-            return "<h3 style='color:red;'>❌ Falscher Name oder Passwort!</h3><a href='/login'>Nochmal versuchen</a>"
+            error = "❌ Falscher Name oder Passwort!"
     
-    return """
+    return f"""
     <!DOCTYPE html>
     <html>
     <head><title>Mitarbeiter Login</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; width: 320px; }
-        .logo { font-size: 3rem; margin-bottom: 10px; }
-        input { width: 90%; padding: 12px; margin: 10px 0; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; }
-        input:focus { border-color: #667eea; outline: none; }
-        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: 600; }
-        .btn:hover { transform: scale(1.02); }
+        body {{ font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }}
+        .box {{ background: white; padding: 40px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; width: 320px; }}
+        .logo {{ font-size: 3rem; margin-bottom: 10px; }}
+        input {{ width: 90%; padding: 12px; margin: 10px 0; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; }}
+        input:focus {{ border-color: #667eea; outline: none; }}
+        .btn {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: 600; }}
+        .btn:hover {{ transform: scale(1.02); }}
+        .error {{ color: red; margin-bottom: 10px; }}
     </style>
     </head>
     <body>
     <div class="box">
         <div class="logo">🚲</div>
         <h2 style="color: #1e293b;">Mitarbeiter Login</h2>
+        {'<p class="error">' + error + '</p>' if error else ''}
         <form method="POST">
             <input type="text" name="username" placeholder="Benutzername" required>
             <input type="password" name="password" placeholder="Passwort" required>
@@ -118,7 +128,7 @@ def logout():
     session.pop('logged_in', None)
     return redirect(url_for('kundenansicht'))
 
-# ==================== KUNDENANSICHT (vereinfacht) ====================
+# ==================== KUNDENANSICHT ====================
 
 HTML_KUNDEN = """
 <!DOCTYPE html>
