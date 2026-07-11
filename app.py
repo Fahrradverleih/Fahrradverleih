@@ -68,6 +68,8 @@ class Wartung(db.Model):
     erstellt_am = db.Column(db.DateTime, default=datetime.utcnow)
     erledigt_am = db.Column(db.DateTime, nullable=True)
 
+# ==================== LOGIN ====================
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -125,8 +127,7 @@ def logout():
 @app.route('/')
 def kundenansicht():
     raeder = Fahrrad.query.all()
-    html = '<!DOCTYPE html>'
-    html += '<html><head><title>🚲 Fahrradverleih</title>'
+    html = '<!DOCTYPE html><html><head><title>🚲 Fahrradverleih</title>'
     html += '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
     html += '<style>'
     html += 'body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; padding: 20px; }'
@@ -161,8 +162,7 @@ def kundenansicht():
     html += '.warning-box { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; margin: 10px 0; font-size: 0.85rem; color: #991b1b; border-radius: 4px; }'
     html += '@media (max-width: 640px) { .header { flex-direction: column; text-align: center; } .header h1 { font-size: 1.5rem; } .grid { grid-template-columns: 1fr; } .form-grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }'
     html += '.logo-img { font-size: 2.5rem; background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 12px; }'
-    html += '</style>'
-    html += '</head><body>'
+    html += '</style></head><body>'
     html += '<div class="header"><div><h1><span>🚲</span> Fahrradverleih</h1><div class="sub">📍 Dein zuverlässiger Partner für Fahrradmiete</div></div><div class="logo-img">⭐ 4.8</div></div>'
     
     # DSGVO Modal
@@ -193,8 +193,7 @@ def kundenansicht():
         html += f'<h3>🚲 {rad.marke} {rad.modell}</h3>'
         html += f'<p><strong>Nr:</strong> {rad.interne_nummer}<br><strong>Größe:</strong> {rad.rahmengroesse} / {rad.farbe}<br><strong>Standort:</strong> {rad.standort}</p>'
         status_class = rad.status.lower() if rad.status else 'verfuegbar'
-        html += f'<span class="badge {status_class}">{rad.status}</span>'
-        html += '<br><br>'
+        html += f'<span class="badge {status_class}">{rad.status}</span><br><br>'
         if rad.status == 'Verfügbar':
             html += f'<form action="/reservieren/{rad.id}" method="POST" onsubmit="return validateForm(this)">'
             html += '<input type="text" name="kunde" placeholder="Vor- und Nachname *" required class="full-width">'
@@ -243,6 +242,8 @@ def kundenansicht():
     html += '</body></html>'
     return html
 
+# ==================== RESERVIEREN ====================
+
 @app.route('/reservieren/<int:id>', methods=['POST'])
 def reservieren(id):
     rad = Fahrrad.query.get(id)
@@ -280,6 +281,8 @@ def reservieren(id):
     flash('✅ Reservierung erfolgreich!', 'success')
     return redirect(url_for('kundenansicht'))
 
+# ==================== WIDERRUF ====================
+
 @app.route('/widerruf', methods=['GET', 'POST'])
 def widerruf():
     if request.method == 'POST':
@@ -312,14 +315,15 @@ def widerruf():
     <br><a href="/">Zurück</a>
     """
 
+# ==================== MITARBEITER ====================
+
 @app.route('/mitarbeiter')
 @login_required
 def mitarbeiter():
     raeder = Fahrrad.query.all()
     kunden = Kunde.query.all()
     wartungen = Wartung.query.all()
-    html = '<!DOCTYPE html>'
-    html += '<html><head><title>Mitarbeiter</title>'
+    html = '<!DOCTYPE html><html><head><title>Mitarbeiter</title>'
     html += '<style>'
     html += 'body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; padding: 20px; }'
     html += '.header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }'
@@ -350,15 +354,13 @@ def mitarbeiter():
     html += '.inbearbeitung { background: #fef3c7; color: #92400e; }'
     html += '.erledigt { background: #dcfce7; color: #166534; }'
     html += '@media (max-width: 640px) { .header { flex-direction: column; text-align: center; gap: 10px; } table { font-size: 0.8rem; } th, td { padding: 6px; } }'
-    html += '</style>'
-    html += '</head><body>'
+    html += '</style></head><body>'
     html += f'<div class="header"><h1>🔧 Mitarbeiter Dashboard</h1><a href="/logout" class="btn-logout">Logout</a></div>'
     html += '<a href="/">← Zurück zur Kundenansicht</a><br><br>'
     html += f'<div class="tab active" onclick="showTab(\'fahrraeder\')">🚲 Fahrräder</div>'
     html += f'<div class="tab" onclick="showTab(\'kunden\')">👤 Kunden ({len(kunden)})</div>'
     html += f'<div class="tab" onclick="showTab(\'wartungen\')">🔧 Wartungen ({len(wartungen)})</div>'
     
-    # Tab: Fahrräder
     html += '<div id="tab-fahrraeder" class="tab-content active">'
     html += '<div class="form-box"><h3>➕ Neues Fahrrad anlegen</h3>'
     html += '<form action="/mitarbeiter/add" method="POST">'
@@ -376,13 +378,11 @@ def mitarbeiter():
         html += f'<tr><td>{rad.interne_nummer}</td><td>{rad.marke}</td><td>{rad.modell}</td><td><span class="badge {status_class}">{rad.status}</span></td><td>{rad.standort}</td><td><a href="/qr/{rad.id}" class="btn btn-qr" target="_blank">QR</a><a href="/rad/{rad.id}" class="btn btn-wartung">Historie</a><a href="/mitarbeiter/delete/{rad.id}" class="btn btn-del" onclick="return confirm(\'Sicher löschen?\')">Löschen</a></td></tr>'
     html += '</table></div>'
     
-    # Tab: Kunden
     html += '<div id="tab-kunden" class="tab-content"><h3>👤 Kunden mit Einwilligung</h3><table><tr><th>Name</th><th>Email</th><th>Adresse</th><th>DSGVO</th><th>Haftung</th><th>Datum</th></tr>'
     for k in kunden:
         html += f'<tr><td>{k.name}</td><td>{k.email}</td><td>{k.adresse}, {k.plz_ort}</td><td>{"✅" if k.einwilligung_dsgvo else "❌"}</td><td>{"✅" if k.haftungsausschluss_akzeptiert else "❌"}</td><td>{k.einwilligung_datum.strftime("%d.%m.%Y %H:%M") if k.einwilligung_datum else "-"}</td></tr>'
     html += '</table></div>'
     
-    # Tab: Wartungen
     html += '<div id="tab-wartungen" class="tab-content"><h3>🔧 Alle Wartungen</h3><table><tr><th>Fahrrad</th><th>Mitarbeiter</th><th>Problem</th><th>Status</th><th>Datum</th><th>Aktionen</th></tr>'
     for w in wartungen:
         status_class = 'offen' if w.status == 'Offen' else 'inbearbeitung' if w.status == 'In Bearbeitung' else 'erledigt'
@@ -396,4 +396,17 @@ def mitarbeiter():
     html += 'document.querySelectorAll(".tab").forEach(el => el.classList.remove("active"));'
     html += 'document.getElementById("tab-" + tab).classList.add("active");'
     html += 'event.target.classList.add("active"); }'
-    html += '</script>
+    html += '</script>'
+    html += '</body></html>'
+    return html
+
+# ==================== MITARBEITER-FUNKTIONEN ====================
+
+@app.route('/mitarbeiter/add', methods=['POST'])
+@login_required
+def add_rad():
+    rad = Fahrrad(
+        interne_nummer=request.form['interne_nummer'],
+        marke=request.form['marke'],
+        modell=request.form['modell'],
+        rahmengroesse=request.form.get
