@@ -554,7 +554,7 @@ def edit_rad(id):
     <br><a href="/mitarbeiter">Zurück zum Dashboard</a>
     """
 
-# ==================== QR-CODE ====================
+# ==================== QR-CODE (KOMPLETT) ====================
 
 @app.route('/qr/<int:id>')
 def show_qr(id):
@@ -564,3 +564,13 @@ def show_qr(id):
     data = f"{PUBLIC_URL}/rad/{rad.id}"
     qr = qrcode.QRCode(box_size=10, border=4)
     qr.add_data(data)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head><title>QR-Code für {rad.marke} {rad.modell}</title>
+   
