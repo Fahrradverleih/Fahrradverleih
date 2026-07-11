@@ -65,7 +65,7 @@ class Wartung(db.Model):
     fahrrad_id = db.Column(db.Integer, db.ForeignKey('fahrrad.id'))
     mitarbeiter = db.Column(db.String(100), nullable=False)
     problem = db.Column(db.Text, nullable=False)
-    status = db.Column(db.String(20), default='Offen')  # Offen, In Bearbeitung, Erledigt
+    status = db.Column(db.String(20), default='Offen')
     erstellt_am = db.Column(db.DateTime, default=datetime.utcnow)
     erledigt_am = db.Column(db.DateTime, nullable=True)
 
@@ -547,4 +547,15 @@ def show_qr(id):
     rad = Fahrrad.query.get(id)
     if not rad:
         return "Nicht gefunden", 404
-    data = f"{PUBLIC_URL}/rad
+    data = f"{PUBLIC_URL}/rad/{rad.id}"
+    qr = qrcode.QRCode(box_size=10, border=4)
+    qr.add_data(data)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return f"""
+    <h2>📱 QR-Code für {rad.marke} {rad.modell}</h2>
+    <img src="data:image/png;base64,{img_str}" alt="QR Code">
+    <
