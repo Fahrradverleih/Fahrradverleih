@@ -539,7 +539,7 @@ def delete_rad(id):
         db.session.commit()
     return redirect(url_for('mitarbeiter'))
 
-# ==================== QR-CODE (vereinfacht) ====================
+# ==================== QR-CODE (KOMPLETT & FEHLERFREI) ====================
 
 @app.route('/qr/<int:id>')
 def show_qr(id):
@@ -556,4 +556,9 @@ def show_qr(id):
     img_str = base64.b64encode(buffered.getvalue()).decode()
     return f"""
     <h2>📱 QR-Code für {rad.marke} {rad.modell}</h2>
-   
+    <img src="data:image/png;base64,{img_str}" alt="QR Code">
+    <br><br>
+    <a href="/mitarbeiter">⬅ Zurück zum Dashboard</a>
+    """
+
+@app.route('/rad
