@@ -569,10 +569,4 @@ def show_qr(id):
     buffered = BytesIO()
     img.save(buffered, format="PNG")
     img_str = base64.b64encode(buffered.getvalue()).decode()
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head><title>QR-Code für {rad.marke} {rad.modell}</title>
-    <style>
-        body {{ font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f3f4f6; }}
-        .box {{ background: white; padding: 40
+    return f
