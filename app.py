@@ -34,16 +34,16 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        # Debug-Ausgaben
-        print(f"Login-Versuch - Benutzername: {username}")
+        # Debug-Ausgabe (wird in den Render-Logs angezeigt)
+        print(f"Login-Versuch mit: {username}")
         
         if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             session['logged_in'] = True
             session.permanent = True
-            print("Login erfolgreich!")
+            print("Login ERFOLGREICH!")
             return redirect(url_for('mitarbeiter'))
         else:
-            print("Login fehlgeschlagen!")
+            print("Login FEHLGESCHLAGEN!")
             return """
             <!DOCTYPE html>
             <html>
@@ -91,6 +91,11 @@ def login():
     </body>
     </html>
     """
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('kundenansicht'))
 
 @app.route('/logout')
 def logout():
