@@ -518,4 +518,111 @@ def mitarbeiter():
                     <td>{{ rad.interne_nummer }}</td>
                     <td>{{ rad.marke }}</td>
                     <td>{{ rad.modell }}</td>
+                    <td><span class="badge {{ 'verfuegbar' if rad.status == 'Verfügbar' else 'reserviert' if rad.status == 'Reserviert' else 'wartung' }}">{{ rad.status }}</span></td>
+                    <td>{{ rad.standort }}</td>
+                    <td>
+                        <a href="/qr/{{ rad.id }}" class="btn btn-qr" target="_blank">📱 QR</a>
+                        <a href="/mitarbeiter/edit/{{ rad.id }}" class="btn btn-edit">Bearbeiten</a>
+                        <a href="/mitarbeiter/delete/{{ rad.id }}" class="btn btn-del" onclick="return confirm('Sicher löschen?')">Löschen</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div id="tab-kunden" class="tab-content">
+            <h3>👤 Kunden mit Einwilligung</h3>
+            <table>
+                <tr><th>Name</th><th>Email</th><th>Adresse</th><th>DSGVO</th><th>Haftung</th><th>Datum</th></tr>
+                {% for k in kunden %}
+                <tr>
+                    <td>{{ k.name }}</td>
+                    <td>{{ k.email }}</td>
+                    <td>{{ k.adresse }}, {{ k.plz_ort }}</td>
+                    <td>{% if k.einwilligung_dsgvo %}✅{% else %}❌{% endif %}</td>
+                    <td>{% if k.haftungsausschluss_akzeptiert %}✅{% else %}❌{% endif %}</td>
+                    <td>{{ k.einwilligung_datum.strftime('%d.%m.%Y %H:%M') if k.einwilligung_datum else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <script>
+            function showTab(tab) {
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+                document.getElementById('tab-' + tab).classList.add('active');
+                event.target.classList.add('active');
+            }
+        </script>
+    </body>
+    </html>
+    """, raeder=raeder, kunden=kunden)
+    <!DOCTYPE html>
+    <html>
+    <head><title>Mitarbeiter Bereich</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; padding: 20px; }
+        .header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .header h1 { display: flex; align-items: center; gap: 10px; }
+        .btn-logout { background: #ef4444; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background 0.2s; }
+        .btn-logout:hover { background: #dc2626; }
+        .tab { display: inline-block; padding: 10px 20px; cursor: pointer; background: #e2e8f0; border-radius: 8px 8px 0 0; margin-right: 4px; font-weight: 600; transition: background 0.2s; }
+        .tab.active { background: white; color: #2563eb; }
+        .tab-content { display: none; background: white; padding: 20px; border-radius: 0 8px 8px 8px; border: 1px solid #e2e8f0; }
+        .tab-content.active { display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; }
+        th { background: #f1f5f9; font-weight: 700; color: #1e293b; }
+        .btn { padding: 5px 12px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; color: white; display: inline-block; font-size: 0.8rem; font-weight: 600; }
+        .btn-edit { background: #2563eb; }
+        .btn-del { background: #ef4444; }
+        .btn-qr { background: #000; }
+        .btn-add { background: #16a34a; }
+        .form-box { background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .form-box input { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px; margin-right: 5px; }
+        .badge { padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; display: inline-block; }
+        .verfuegbar { background: #dcfce7; color: #166534; }
+        .reserviert { background: #fef3c7; color: #92400e; }
+        .wartung { background: #fee2e2; color: #991b1b; }
+        @media (max-width: 640px) {
+            .header { flex-direction: column; text-align: center; gap: 10px; }
+            table { font-size: 0.8rem; }
+            th, td { padding: 6px; }
+        }
+    </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>🔧 Mitarbeiter Dashboard</h1>
+            <a href="/logout" class="btn-logout">🚪 Logout</a>
+        </div>
+        <a href="/">← Zurück zur Kundenansicht</a>
+        <br><br>
+
+        <div class="tab active" onclick="showTab('fahrraeder')">🚲 Fahrräder</div>
+        <div class="tab" onclick="showTab('kunden')">👤 Kunden ({{ kunden|length }})</div>
+
+        <div id="tab-fahrraeder" class="tab-content active">
+            <div class="form-box">
+                <h3>➕ Neues Fahrrad anlegen</h3>
+                <form action="/mitarbeiter/add" method="POST">
+                    Nr: <input type="text" name="interne_nummer" required>
+                    Marke: <input type="text" name="marke" required>
+                    Modell: <input type="text" name="modell" required>
+                    Größe: <input type="text" name="rahmengroesse">
+                    Farbe: <input type="text" name="farbe">
+                    Standort: <input type="text" name="standort">
+                    <button type="submit" class="btn btn-add">Hinzufügen</button>
+                </form>
+            </div>
+
+            <h3>📋 Alle Fahrräder</h3>
+            <table>
+                <tr><th>Nr</th><th>Marke</th><th>Modell</th><th>Status</th><th>Standort</th><th>Aktionen</th></tr>
+                {% for rad in raeder %}
+                <tr>
+                    <td>{{ rad.interne_nummer }}</td>
+                    <td>{{ rad.marke }}</td>
+                    <td>{{ rad.modell }}</td>
                     <td><span class="badge {{ 'verfuegbar' if rad.status == 'Verfügbar' else 'reserviert' if rad.status == '
