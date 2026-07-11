@@ -20,8 +20,6 @@ ADMIN_PASSWORD = "geheim123"
 
 PUBLIC_URL = os.environ.get('PUBLIC_URL', 'https://fahrradverleih.onrender.com')
 
-# ==================== DATENBANK-MODELLE ====================
-
 class Fahrrad(db.Model):
     __tablename__ = 'fahrrad'
     id = db.Column(db.Integer, primary_key=True)
@@ -67,8 +65,6 @@ class Wartung(db.Model):
     status = db.Column(db.String(20), default='Offen')
     erstellt_am = db.Column(db.DateTime, default=datetime.utcnow)
     erledigt_am = db.Column(db.DateTime, nullable=True)
-
-# ==================== LOGIN ====================
 
 def login_required(f):
     @wraps(f)
@@ -122,8 +118,6 @@ def logout():
     session.pop('logged_in', None)
     return redirect(url_for('kundenansicht'))
 
-# ==================== KUNDENANSICHT ====================
-
 @app.route('/')
 def kundenansicht():
     raeder = Fahrrad.query.all()
@@ -165,7 +159,6 @@ def kundenansicht():
     html += '</style></head><body>'
     html += '<div class="header"><div><h1><span>🚲</span> Fahrradverleih</h1><div class="sub">📍 Dein zuverlässiger Partner für Fahrradmiete</div></div><div class="logo-img">⭐ 4.8</div></div>'
     
-    # DSGVO Modal
     html += '<div id="dsgvoModal" class="modal"><div class="modal-content"><button class="modal-close" onclick="document.getElementById(\'dsgvoModal\').style.display=\'none\'">✕</button>'
     html += '<h2>📄 Datenschutzerklärung (DSGVO)</h2><hr>'
     html += '<p><strong>Verantwortlicher:</strong> Fahrradverleih GmbH, Musterstraße 1, 12345 Berlin</p>'
@@ -177,7 +170,6 @@ def kundenansicht():
     html += '<p><strong>Widerruf:</strong> Jederzeit <a href="/widerruf" target="_blank">hier</a> möglich.</p>'
     html += '<p><small>Stand: Juli 2026</small></p></div></div>'
     
-    # Haftung Modal
     html += '<div id="haftungModal" class="modal"><div class="modal-content"><button class="modal-close" onclick="document.getElementById(\'haftungModal\').style.display=\'none\'">✕</button>'
     html += '<h2>⚠️ Haftungsausschluss</h2><hr>'
     html += '<p><strong>1. Nutzung auf eigene Gefahr</strong><br>Die Nutzung der Fahrräder erfolgt ausschließlich auf eigene Gefahr. Der Mieter versichert, dass er das Fahrrad sicher beherrscht und alle Verkehrsregeln kennt.</p>'
@@ -242,8 +234,6 @@ def kundenansicht():
     html += '</body></html>'
     return html
 
-# ==================== RESERVIEREN ====================
-
 @app.route('/reservieren/<int:id>', methods=['POST'])
 def reservieren(id):
     rad = Fahrrad.query.get(id)
@@ -281,8 +271,6 @@ def reservieren(id):
     flash('✅ Reservierung erfolgreich!', 'success')
     return redirect(url_for('kundenansicht'))
 
-# ==================== WIDERRUF ====================
-
 @app.route('/widerruf', methods=['GET', 'POST'])
 def widerruf():
     if request.method == 'POST':
@@ -314,8 +302,6 @@ def widerruf():
     </form>
     <br><a href="/">Zurück</a>
     """
-
-# ==================== MITARBEITER ====================
 
 @app.route('/mitarbeiter')
 @login_required
@@ -400,8 +386,6 @@ def mitarbeiter():
     html += '</body></html>'
     return html
 
-# ==================== MITARBEITER-FUNKTIONEN ====================
-
 @app.route('/mitarbeiter/add', methods=['POST'])
 @login_required
 def add_rad():
@@ -409,4 +393,4 @@ def add_rad():
         interne_nummer=request.form['interne_nummer'],
         marke=request.form['marke'],
         modell=request.form['modell'],
-        rahmengroesse=request.form.get
+       
