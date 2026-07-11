@@ -97,11 +97,6 @@ def logout():
     session.pop('logged_in', None)
     return redirect(url_for('kundenansicht'))
 
-@app.route('/logout')
-def logout():
-    session.pop('logged_in', None)
-    return redirect(url_for('kundenansicht'))
-
 PUBLIC_URL = 'https://fahrradverleih.onrender.com'
 
 # ==================== DATENBANK-MODELLE ====================
