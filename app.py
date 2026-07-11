@@ -302,8 +302,7 @@ def widerruf():
     </form>
     <br><a href="/">Zurück</a>
     """
-
-@app.route('/mitarbeiter')
+    @app.route('/mitarbeiter')
 @login_required
 def mitarbeiter():
     raeder = Fahrrad.query.all()
@@ -393,4 +392,55 @@ def add_rad():
         interne_nummer=request.form['interne_nummer'],
         marke=request.form['marke'],
         modell=request.form['modell'],
-       
+        rahmengroesse=request.form.get('rahmengroesse', ''),
+        farbe=request.form.get('farbe', ''),
+        standort=request.form.get('standort', ''),
+        status='Verfügbar'
+    )
+    db.session.add(rad)
+    db.session.commit()
+    return redirect(url_for('mitarbeiter'))
+
+@app.route('/mitarbeiter/delete/<int:id>')
+@login_required
+def delete_rad(id):
+    rad = Fahrrad.query.get(id)
+    if rad:
+        db.session.delete(rad)
+        db.session.commit()
+    return redirect
+    @app.route('/qr/<int:id>')
+def show_qr(id):
+    rad = Fahrrad.query.get(id)
+    if not rad:
+        return "Nicht gefunden", 404
+    data = f"{PUBLIC_URL}/rad/{rad.id}"
+    qr = qrcode.QRCode(box_size=10, border=4)
+    qr.add_data(data)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    html = f'<h2>QR-Code für {rad.marke} {rad.modell}</h2>'
+    html += f'<img src="data:image/png;base64,{img_str}">'
+    html += '<br><br><a href="/mitarbeiter">⬅ Zurück</a>'
+    return html
+
+@app.route('/rad/<int:id>')
+def fahrradakte(id):
+    rad = Fahrrad.query.get(id)
+    if not rad:
+        return "Nicht gefunden", 404
+    html = f'<h1>📋 Fahrradakte</h1>'
+    html += f'<p><strong>Nr:</strong> {rad.interne_nummer}</p>'
+    html += f'<p><strong>Marke:</strong> {rad.marke}</p>'
+    html += f'<p><strong>Modell:</strong> {rad.modell}</p>'
+    html += f'<p><strong>Status:</strong> {rad.status}</p>'
+    html += f'<p><strong>Standort:</strong> {rad.standort}</p>'
+    html += '<a href="/mitarbeiter">⬅ Zurück</a>'
+    return html
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
