@@ -58,7 +58,6 @@ class Reservierung(db.Model):
     reserviert_am = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='Aktiv')
 
-# ====== NEU: Wartungs-Log für Mitarbeiter ======
 class Wartung(db.Model):
     __tablename__ = 'wartung'
     id = db.Column(db.Integer, primary_key=True)
@@ -540,7 +539,7 @@ def delete_rad(id):
         db.session.commit()
     return redirect(url_for('mitarbeiter'))
 
-# ==================== QR-CODE & HISTORIE ====================
+# ==================== QR-CODE (vereinfacht) ====================
 
 @app.route('/qr/<int:id>')
 def show_qr(id):
@@ -557,7 +556,4 @@ def show_qr(id):
     img_str = base64.b64encode(buffered.getvalue()).decode()
     return f"""
     <h2>📱 QR-Code für {rad.marke} {rad.modell}</h2>
-    <img src="data:image/png;base64,{img_str}" alt="QR Code">
-    <br><br>
-    <a href="/mitarbeiter">⬅ Zurück zum Dashboard</a>
-    """
+   
