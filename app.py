@@ -418,4 +418,6 @@ def delete_rad(id):
 def qr_code(id):
     rad = Fahrrad.query.get(id)
     if not rad:
-        return "Fahrrad nicht gefunden",
+        return "Fahrrad nicht gefunden", 404
+    
+    #
